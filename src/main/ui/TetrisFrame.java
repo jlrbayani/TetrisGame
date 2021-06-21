@@ -10,7 +10,8 @@ public class TetrisFrame extends JFrame {
     private CardLayout cardLayout;
 
     public static final int HEIGHT = 720;
-    public static final int WIDTH = 1280;
+    public static final int WIDTH = 800;
+    //public static final int WIDTH = 1280;
 
     public TetrisFrame() {
         initFrame();
@@ -27,7 +28,6 @@ public class TetrisFrame extends JFrame {
         pack();
         setVisible(true);
         centreOnScreen();
-
     }
 
     public void startGame() {
@@ -38,6 +38,13 @@ public class TetrisFrame extends JFrame {
         cardLayout.show(cards, MenuPanel.MENUPANEL);
     }
 
+    public void showHighScores() {
+
+    }
+
+    public void showOptions() {
+
+    }
 
     private void initCards() {
         cards = new JPanel(new CardLayout());

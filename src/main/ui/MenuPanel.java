@@ -7,10 +7,12 @@ import java.awt.event.ActionListener;
 
 public class MenuPanel extends JPanel implements ActionListener {
     final static String MENUPANEL = "menuPanel";
-    private static final Color backgroundCol = new Color(224, 214, 255);
+    private static final Color backgroundCol = new Color(43, 42, 42);
 
     private JLabel title;
-    private JButton start;
+    private StandardButton start;
+    private StandardButton highScores;
+    private StandardButton options;
     private TetrisFrame frame;
 
     public MenuPanel(TetrisFrame frame) {
@@ -25,9 +27,20 @@ public class MenuPanel extends JPanel implements ActionListener {
     // MODIFIES: this
     // EFFECTS: initializes all the main components of the game panel
     private void initButtons() {
-        start = new JButton("New Game");
+        start = new StandardButton("START");
+        start.setMaximumSize(new Dimension(170, 37));
         start.setAlignmentX(Component.CENTER_ALIGNMENT);
         start.addActionListener(this);
+
+        highScores = new StandardButton("HIGH SCORES");
+        highScores.setMaximumSize(new Dimension(170, 37));
+        highScores.setAlignmentX(Component.CENTER_ALIGNMENT);
+        highScores.addActionListener(this);
+
+        options = new StandardButton("OPTIONS");
+        options.setMaximumSize(new Dimension(170, 37));
+        options.setAlignmentX(Component.CENTER_ALIGNMENT);
+        options.addActionListener(this);
     }
 
     // MODIFIES: this
@@ -35,9 +48,9 @@ public class MenuPanel extends JPanel implements ActionListener {
     private void initPanel() {
         setBackground(backgroundCol);
 
-        title = new JLabel("TETRIS");
+        ImageIcon tetrisLogo = new ImageIcon("resources/icons/TetrisLogo.png");
+        title = new JLabel(tetrisLogo);
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
-        title.setFont(new Font("Courier", Font.PLAIN, 100));
 
         setPreferredSize(new Dimension(TetrisFrame.WIDTH,TetrisFrame.HEIGHT));
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -45,8 +58,12 @@ public class MenuPanel extends JPanel implements ActionListener {
 
         add(Box.createRigidArea(new Dimension(0, 100)));
         add(title);
-        add(Box.createRigidArea(new Dimension(0, 150)));
+        add(Box.createRigidArea(new Dimension(0, 100)));
         add(start);
+        add(Box.createRigidArea(new Dimension(0, 50)));
+        add(highScores);
+        add(Box.createRigidArea(new Dimension(0, 50)));
+        add(options);
         add(Box.createRigidArea(new Dimension(0, 50)));
 
     }
