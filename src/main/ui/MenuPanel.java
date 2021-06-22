@@ -25,7 +25,7 @@ public class MenuPanel extends JPanel implements ActionListener {
     }
 
     // MODIFIES: this
-    // EFFECTS: initializes all the main components of the game panel
+    // EFFECTS: initializes all the main buttons of the menu panel
     private void initButtons() {
         start = new StandardButton("START");
         start.setMaximumSize(new Dimension(170, 37));
@@ -72,8 +72,11 @@ public class MenuPanel extends JPanel implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         Object src = e.getSource();
         if (src == start) {
-            setBackground(new Color(0, 0, 0));
             frame.startGame();
+        } else if (src == highScores) {
+            frame.showHighScores();
+        } else if (src == options) {
+            frame.showOptions();
         }
     }
 }

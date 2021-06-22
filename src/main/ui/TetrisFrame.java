@@ -10,7 +10,7 @@ public class TetrisFrame extends JFrame {
     private CardLayout cardLayout;
 
     public static final int HEIGHT = 720;
-    public static final int WIDTH = 800;
+    public static final int WIDTH = 920;
     //public static final int WIDTH = 1280;
 
     public TetrisFrame() {
