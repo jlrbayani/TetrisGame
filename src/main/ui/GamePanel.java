@@ -21,7 +21,7 @@ public class GamePanel extends JPanel implements ActionListener {
         super();
         this.frame = frame;
 
-        game = new Game();
+        game = new Game(frame);
         initLabels();
         initButtons();
         initPanel();
