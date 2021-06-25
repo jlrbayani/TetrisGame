@@ -3,27 +3,43 @@ package main.model;
 import main.ui.TetrisFrame;
 
 public class Game implements Runnable{
-    private final double MS_PER_UPDATE = 15;
+    private final double MS_PER_UPDATE = 16.5;
+
     private boolean keepRunning;
     private TetrisFrame frame;
     private Thread gameThread;
 
+    private double currentGameSpeed;
+
+    private Board holdBoard, gameBoard, nextBoard, upcomingPiecesBoard;
+
     public Game(TetrisFrame frame) {
         this.frame = frame;
-
-        this.keepRunning = true;
-        gameThread = new Thread(this, "Game");
-        gameThread.start();
+        gameBoard = new Board(5, 5);
     }
 
-    public void render(double extrapolate) {}
+    public void render(double extrapolate) {
+
+    }
 
     public void update() {
 
     }
 
+    public void startGame() {
+        this.keepRunning = true;
+        gameThread = new Thread(this, "Game");
+        gameThread.start();
+    }
+
     public void endGame() {
         keepRunning = false;
+
+        try {
+            this.gameThread.join();
+        } catch (InterruptedException e){
+            e.printStackTrace();
+        }
     }
 
     // covers the main game loop
@@ -50,7 +66,7 @@ public class Game implements Runnable{
                 lag -= MS_PER_UPDATE;
             }
 
-            render(lag/MS_PER_UPDATE);
+            render(lag / MS_PER_UPDATE);
             frames++;
 
             while (System.currentTimeMillis() - timer > 1000) {

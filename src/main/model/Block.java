@@ -1,9 +1,12 @@
 package main.model;
 
-public class Score {
+public class Block {
 
-    public Score() {}
+    private double fallSpeed;
 
+    public Block() {
+
+    }
 
     public void render(double extrapolate) {
 
@@ -12,5 +15,4 @@ public class Score {
     public void update() {
 
     }
-
 }

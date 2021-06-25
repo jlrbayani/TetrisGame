@@ -31,6 +31,7 @@ public class TetrisFrame extends JFrame {
     }
 
     public void startGame() {
+        gamePanel.startGame();
         cardLayout.show(cards, GamePanel.GAMEPANEL);
     }
 
@@ -48,7 +49,7 @@ public class TetrisFrame extends JFrame {
 
     private void initCards() {
         cards = new JPanel(new CardLayout());
-        cardLayout= (CardLayout) (cards.getLayout());
+        cardLayout = (CardLayout) (cards.getLayout());
         add(cards);
 
         menuPanel = new MenuPanel(this);
