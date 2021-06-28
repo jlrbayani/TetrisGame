@@ -8,6 +8,7 @@ public class TetrisFrame extends JFrame {
     private MenuPanel menuPanel;
     private GamePanel gamePanel;
     private CardLayout cardLayout;
+    private JPanel currentPanel;
 
     public static final int HEIGHT = 720;
     public static final int WIDTH = 920;
@@ -25,26 +26,30 @@ public class TetrisFrame extends JFrame {
         initCards();
         showMenu();
 
+        currentPanel = menuPanel;
+
         pack();
         setVisible(true);
         centreOnScreen();
     }
 
     public void startGame() {
+        currentPanel = gamePanel;
         gamePanel.startGame();
         cardLayout.show(cards, GamePanel.GAMEPANEL);
     }
 
     public void showMenu() {
+        currentPanel = menuPanel;
         cardLayout.show(cards, MenuPanel.MENUPANEL);
     }
 
     public void showHighScores() {
-
+        // currentPanel = highScoresPanel;
     }
 
     public void showOptions() {
-
+        // currentPanel = optionsPanel;
     }
 
     private void initCards() {
@@ -66,4 +71,7 @@ public class TetrisFrame extends JFrame {
         setLocation((screen.width - getWidth()) / 2, (screen.height - getHeight()) / 2);
     }
 
+    public JPanel getCurrentPanel() {
+        return currentPanel;
+    }
 }

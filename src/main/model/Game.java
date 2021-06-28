@@ -2,8 +2,16 @@ package main.model;
 
 import main.ui.TetrisFrame;
 
+import java.util.ArrayList;
+
 public class Game implements Runnable{
     private final double MS_PER_UPDATE = 16.5;
+    private final int GAME_COLS = 10;
+    private final int GAME_ROWS = 21;
+    private final int NEXT_COLS = 4;
+    private final int NEXT_ROWS = 4;
+    private final int HOLD_COLS = 4;
+    private final int HOLD_ROWS = 16;
 
     private boolean keepRunning;
     private TetrisFrame frame;
@@ -11,28 +19,41 @@ public class Game implements Runnable{
 
     private double currentGameSpeed;
 
-    private Board holdBoard, gameBoard, nextBoard, upcomingPiecesBoard;
+    private Board holdBoard, gameBoard, nextBoard;
+    private Score score;
+    private int lines;
+
+    private ArrayList<Entity> entityList;
 
     public Game(TetrisFrame frame) {
         this.frame = frame;
-        gameBoard = new Board(5, 5);
+        currentGameSpeed = 1;
+        score = new Score();
+        lines = 0;
+
+        entityList = new ArrayList<>();
+        initStartingEntities();
     }
 
-    public void render(double extrapolate) {
-
+    public void setExtrapolation(double extrapolate) {
+        for (Entity e: entityList) {
+            e.setExtrapolation(extrapolate);
+        }
     }
 
     public void update() {
-
+       for (Entity e: entityList) {
+           e.update();
+       }
     }
 
-    public void startGame() {
+    public synchronized void startGame() {
         this.keepRunning = true;
         gameThread = new Thread(this, "Game");
         gameThread.start();
     }
 
-    public void endGame() {
+    public synchronized void endGame() {
         keepRunning = false;
 
         try {
@@ -40,6 +61,22 @@ public class Game implements Runnable{
         } catch (InterruptedException e){
             e.printStackTrace();
         }
+    }
+
+    private void initStartingEntities() {
+        gameBoard = new Board(GAME_COLS, GAME_ROWS, 300, 50);
+        entityList.add(gameBoard);
+
+//        nextBoard = new Board(NEXT_COLS, NEXT_ROWS);
+//        entityList.add(nextBoard);
+//
+//        holdBoard = new Board(HOLD_COLS, HOLD_ROWS);
+//        entityList.add(holdBoard);
+    }
+
+
+    public ArrayList<Entity> getEntityList() {
+        return entityList;
     }
 
     // covers the main game loop
@@ -66,7 +103,8 @@ public class Game implements Runnable{
                 lag -= MS_PER_UPDATE;
             }
 
-            render(lag / MS_PER_UPDATE);
+            setExtrapolation(lag / MS_PER_UPDATE);
+            frame.getCurrentPanel().repaint();
             frames++;
 
             while (System.currentTimeMillis() - timer > 1000) {

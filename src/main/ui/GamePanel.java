@@ -1,5 +1,6 @@
 package main.ui;
 
+import main.model.Entity;
 import main.model.Game;
 
 import javax.swing.*;
@@ -44,17 +45,17 @@ public class GamePanel extends JPanel implements ActionListener {
     private void initButtons() {
         ImageIcon pauseIcon = new ImageIcon("resources/icons/pauseButton.png");
         pauseGame = new JButton(pauseIcon);
-        pauseGame.setMaximumSize(new Dimension(60, 60));
+        pauseGame.setMaximumSize(new Dimension(pauseIcon.getIconWidth(), pauseIcon.getIconHeight()));
         pauseGame.addActionListener(this);
 
         ImageIcon optionsIcon = new ImageIcon("resources/icons/optionsButton.png");
         options = new JButton(optionsIcon);
-        options.setMaximumSize(new Dimension(60, 60));
+        options.setMaximumSize(new Dimension(optionsIcon.getIconWidth(), optionsIcon.getIconHeight()));
         options.addActionListener(this);
 
         ImageIcon quitIcon = new ImageIcon("resources/icons/quitButton.png");
         quitGame = new JButton(quitIcon);
-        quitGame.setMaximumSize(new Dimension(108, 30));
+        quitGame.setMaximumSize(new Dimension(quitIcon.getIconWidth(), quitIcon.getIconHeight()));
         quitGame.addActionListener(this);
 
     }
@@ -74,6 +75,16 @@ public class GamePanel extends JPanel implements ActionListener {
     public void startGame() {
         game = new Game(frame);
         game.startGame();
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2 = (Graphics2D) g;
+
+        for (Entity e: game.getEntityList()) {
+            e.draw(g2);
+        }
     }
 
     @Override
