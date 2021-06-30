@@ -1,15 +1,16 @@
 package main.model;
 
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 
-public class Cell implements Entity{
+public class Cell extends Entity{
 
     public static final int SIZE = 30;
     private int colPos, rowPos;
-    private int actualX, actualY;
-    private double extrapolate;
     private boolean isFilled;
     private Block block;
+    private BufferedImage bI;
 
     public Cell(int colPos, int rowPos, int actualX, int actualY){
         this.colPos = colPos;
@@ -17,8 +18,11 @@ public class Cell implements Entity{
         this.actualX = actualX;
         this.actualY = actualY;
 
-        this.isFilled = false;
+        velocityX = 2;
+
+        this.isFilled = true;
         this.block = null;
+        addBlock(new Block(TetrisPiece.Type.I));
     }
 
     public int getColPos() {
@@ -36,16 +40,34 @@ public class Cell implements Entity{
 
     @Override
     public void update() {
-        actualX += 3;
+        changeX  += (velocityX * extrapolate);
+        if (isFilled) {
+            block.update();
+        }
+        //System.out.println(extrapolate);
+        //changeX += 2;
     }
 
     @Override
     public void draw(Graphics2D g2) {
         if (!isFilled) {
             g2.setColor(Color.BLACK);
-            g2.drawRect(actualX, actualY, SIZE, SIZE);
+            Rectangle2D rect = new Rectangle2D.Double(actualX + changeX, actualY, SIZE, SIZE);
+            g2.draw(rect);
+            //g2.drawRect(actualX, actualY, SIZE, SIZE);
+        } else {
+            block.draw(g2);
         }
 
 
+    }
+
+    public void addBlock(Block block) {
+        isFilled = true;
+        this.block = block;
+    }
+
+    public void setFilled(boolean filled) {
+        isFilled = filled;
     }
 }

@@ -9,9 +9,9 @@ public class Game implements Runnable{
     private final int GAME_COLS = 10;
     private final int GAME_ROWS = 21;
     private final int NEXT_COLS = 4;
-    private final int NEXT_ROWS = 4;
+    private final int NEXT_ROWS = 16;
     private final int HOLD_COLS = 4;
-    private final int HOLD_ROWS = 16;
+    private final int HOLD_ROWS = 4;
 
     private boolean keepRunning;
     private TetrisFrame frame;
@@ -103,6 +103,7 @@ public class Game implements Runnable{
                 lag -= MS_PER_UPDATE;
             }
 
+            //System.out.println(lag / MS_PER_UPDATE);
             setExtrapolation(lag / MS_PER_UPDATE);
             frame.getCurrentPanel().repaint();
             frames++;

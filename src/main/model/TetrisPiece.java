@@ -4,11 +4,9 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class TetrisPiece implements Entity{
+public class TetrisPiece extends Entity{
 
     private int rotation;
-    private double fallSpeed, extrapolate;
-
     private Type type;
     private ArrayList<Block> blocks;
 
@@ -17,14 +15,12 @@ public class TetrisPiece implements Entity{
     }
 
     public TetrisPiece() {
-        this.fallSpeed = 1;
         this.rotation = 1;
 
         this.type = chooseRandomType();
     }
 
     public TetrisPiece(int numType) {
-        this.fallSpeed = 1;
         this.rotation = 1;
 
         this.type = setType(numType);

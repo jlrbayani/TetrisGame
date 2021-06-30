@@ -3,7 +3,7 @@ package main.model;
 import java.awt.*;
 import java.util.ArrayList;
 
-public class Board implements Runnable, Entity {
+public class Board extends Entity {
 
     private int numCols, numRows;
     private ArrayList<Cell> boardList;
@@ -24,7 +24,9 @@ public class Board implements Runnable, Entity {
 
     @Override
     public void setExtrapolation(double extrapolate) {
-
+        for (Cell c: boardList) {
+            c.setExtrapolation(extrapolate);
+        }
     }
 
     @Override
@@ -76,8 +78,4 @@ public class Board implements Runnable, Entity {
 //        }
     }
 
-    @Override
-    public void run() {
-
-    }
 }
