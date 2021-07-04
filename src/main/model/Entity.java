@@ -21,6 +21,14 @@ public abstract class Entity {
         this.velocityY = velY;
     }
 
+    public int getActualX() {
+        return actualX;
+    }
+
+    public int getActualY() {
+        return actualY;
+    }
+
     public abstract void update();
     public abstract void draw(Graphics2D g2);
 

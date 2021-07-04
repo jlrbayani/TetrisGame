@@ -8,21 +8,19 @@ public class Cell extends Entity{
 
     public static final int SIZE = 30;
     private int colPos, rowPos;
-    private boolean isFilled;
     private Block block;
     private BufferedImage bI;
 
-    public Cell(int colPos, int rowPos, int actualX, int actualY){
-        this.colPos = colPos;
+    public Cell(int rowPos, int colPos, int actualX, int actualY){
         this.rowPos = rowPos;
+        this.colPos = colPos;
         this.actualX = actualX;
         this.actualY = actualY;
 
         velocityX = 2;
 
-        this.isFilled = true;
         this.block = null;
-        addBlock(new Block(TetrisPiece.Type.I));
+        addBlock(new Block(TetrisPiece.Type.I, this));
     }
 
     public int getColPos() {
@@ -36,12 +34,16 @@ public class Cell extends Entity{
     @Override
     public void setExtrapolation(double extrapolate) {
         this.extrapolate = extrapolate;
+        if (isFilled()) {
+            block.setExtrapolation(extrapolate);
+        }
     }
 
     @Override
     public void update() {
-        changeX  += (velocityX * extrapolate);
-        if (isFilled) {
+        changeX += (velocityX * extrapolate);
+        //changeX += 30;
+        if (isFilled()) {
             block.update();
         }
         //System.out.println(extrapolate);
@@ -50,8 +52,8 @@ public class Cell extends Entity{
 
     @Override
     public void draw(Graphics2D g2) {
-        if (!isFilled) {
-            g2.setColor(Color.BLACK);
+        if (!isFilled()) {
+            g2.setColor(Color.WHITE);
             Rectangle2D rect = new Rectangle2D.Double(actualX + changeX, actualY, SIZE, SIZE);
             g2.draw(rect);
             //g2.drawRect(actualX, actualY, SIZE, SIZE);
@@ -59,15 +61,22 @@ public class Cell extends Entity{
             block.draw(g2);
         }
 
+    }
 
+
+    public boolean isFilled() {
+        return block != null;
     }
 
     public void addBlock(Block block) {
-        isFilled = true;
         this.block = block;
     }
 
-    public void setFilled(boolean filled) {
-        isFilled = filled;
+    public void removeBlock() {
+        if (block != null) {
+            block.removeCell();
+        }
+        this.block = null;
     }
+
 }

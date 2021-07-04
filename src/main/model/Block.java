@@ -12,25 +12,69 @@ public class Block extends Entity{
     private int blockType;
     private BufferedImage img;
     private Cell cell;
+    private boolean isLocked;
 
     public enum Dir {
         DOWN, LEFT, RIGHT
     }
 
-    public Block(TetrisPiece.Type blockType) {
-        this.cell = null;
+    public Block(TetrisPiece.Type blockType, int rowPos, int colPos, int offsetX, int offsetY) {
+
+    }
+
+
+    public Block(TetrisPiece.Type blockType, Cell cell) {
+        this.cell = cell;
+        this.actualX = cell.getActualX();
+        this.actualY = cell.getActualY();
+        this.rowPos = cell.getRowPos();
+        this.colPos = cell.getColPos();
         this.velocityX = 2;
 
-        BufferedImage img = null;
-        try {
-            img = ImageIO.read(new File("resources/blocks/blockI.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
+        setBlockImg(blockType);
+    }
+
+    private void setBlockImg(TetrisPiece.Type blockType) {
+        switch (blockType) {
+            case I:
+                try {
+                    img = ImageIO.read(new File("resources/blocks/blockI.png"));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+            case Z:
+                try {
+                    img = ImageIO.read(new File("resources/blocks/blockZ.png"));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+            default:
         }
     }
 
     public BufferedImage getImg() {
         return img;
+    }
+
+    public void removeCell() {
+        cell = null;
+    }
+
+    public void lockBlock(Cell c) {
+        cell = c;
+        this.rowPos = c.getRowPos();
+        this.colPos = c.getColPos();
+
+    }
+
+    public int getColPos() {
+        return colPos;
+    }
+
+    public int getRowPos() {
+        return rowPos;
     }
 
     @Override
@@ -40,18 +84,21 @@ public class Block extends Entity{
 
     @Override
     public void update() {
+        //System.out.println(extrapolate);
         changeX  += (velocityX * extrapolate);
+        //System.out.println("changeX: " + changeX);
+        //System.out.println("sum: " + (int)(actualX + changeX));
+        //changeX += 2;
     }
 
     @Override
     public void draw(Graphics2D g2) {
-        BufferedImage img = null;
-        try {
-            img = ImageIO.read(new File("resources/blocks/blockI.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
+        int t = (this.rowPos * 10 + this.colPos);
+        if (t == 1 || t == 2) {
+            //System.out.println( t + ": " +  (int)(actualX + changeX));
         }
-        g2.drawImage(img, (int) (actualX + changeX), actualY, null);
+
+        g2.drawImage(img, (int) Math.floor(actualX + changeX), actualY, null);
 
     }
 }

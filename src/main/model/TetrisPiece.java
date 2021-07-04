@@ -6,7 +6,7 @@ import java.util.Random;
 
 public class TetrisPiece extends Entity{
 
-    private int rotation;
+    private int rotation, rowPos, colPos;
     private Type type;
     private ArrayList<Block> blocks;
 
@@ -22,7 +22,6 @@ public class TetrisPiece extends Entity{
 
     public TetrisPiece(int numType) {
         this.rotation = 1;
-
         this.type = setType(numType);
     }
 
@@ -50,11 +49,23 @@ public class TetrisPiece extends Entity{
         }
     }
 
+    public void setBlocks() {
+        blocks = new ArrayList<>();
+        for (int i = 0; i < 4; i++) {
 
+        }
+    }
+
+    public void lockPiece(Cell c) {
+
+    }
 
     @Override
     public void setExtrapolation(double extrapolate) {
         this.extrapolate = extrapolate;
+        for (Block b: blocks) {
+            b.setExtrapolation(extrapolate);
+        }
     }
 
     @Override

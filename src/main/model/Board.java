@@ -19,7 +19,7 @@ public class Board extends Entity {
 
         initBoard();
         // for testing purposes
-        // printBoard();
+        //printBoard();
     }
 
     @Override
@@ -31,15 +31,15 @@ public class Board extends Entity {
 
     @Override
     public void update() {
-        for (Cell c: boardList) {
-            c.update();
+        for (Entity e: boardList) {
+            e.update();
         }
     }
 
     @Override
     public void draw(Graphics2D g2) {
-        for (Cell c: boardList) {
-            c.draw(g2);
+        for (Entity e: boardList) {
+            e.draw(g2);
         }
     }
 
@@ -58,13 +58,19 @@ public class Board extends Entity {
         }
     }
 
+    public void clearBoard() {
+        for (Cell c: boardList) {
+            c.removeBlock();
+        }
+    }
+
     public void printBoard() {
         System.out.println("Board: ");
         for (int i = 0; i < boardList.size(); i++) {
             if (i % (numCols) == 0 && i > 0) {
                 System.out.println();
             }
-            System.out.format("%3d  ", (boardList.get(i).getRowPos() + (boardList.get(i).getColPos() * (numCols))));
+            System.out.format("%3d  ", (boardList.get(i).getRowPos() * numCols + boardList.get(i).getColPos()));
             //System.out.print((boardList.get(i).getRowPos() + (boardList.get(i).getColPos() * (numCols))) + "       ");
         }
 
@@ -76,6 +82,10 @@ public class Board extends Entity {
 //            }
 //            System.out.println();
 //        }
+    }
+
+    public Cell getCell(int rowPos, int colPos) {
+        return boardList.get(rowPos * numCols + colPos);
     }
 
 }
