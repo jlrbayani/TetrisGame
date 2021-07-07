@@ -52,11 +52,11 @@ public class TetrisPiece extends Entity{
     public void setBlocks() {
         blocks = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
-
+            //blocks.add(new Block (this.type, ))
         }
     }
 
-    public void lockPiece(Cell c) {
+    public void lockPiece(Board b) {
 
     }
 

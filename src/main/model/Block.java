@@ -9,9 +9,10 @@ import java.io.IOException;
 public class Block extends Entity{
 
     private int colPos, rowPos;
-    private int blockType;
+    private int move;
     private BufferedImage img;
     private Cell cell;
+    private TetrisPiece.Type blockType;
     private boolean isLocked;
 
     public enum Dir {
@@ -29,9 +30,12 @@ public class Block extends Entity{
         this.actualY = cell.getActualY();
         this.rowPos = cell.getRowPos();
         this.colPos = cell.getColPos();
+        this.blockType = blockType;
+        this.isLocked = true;
+
         this.velocityX = 2;
 
-        setBlockImg(blockType);
+        setBlockImg(this.blockType);
     }
 
     private void setBlockImg(TetrisPiece.Type blockType) {
@@ -59,11 +63,15 @@ public class Block extends Entity{
     }
 
     public void removeCell() {
+        isLocked = false;
         cell = null;
     }
 
     public void lockBlock(Cell c) {
+        isLocked = true;
         cell = c;
+        this.actualX = cell.getActualX();
+        this.actualY = cell.getActualY();
         this.rowPos = c.getRowPos();
         this.colPos = c.getColPos();
 
@@ -85,20 +93,27 @@ public class Block extends Entity{
     @Override
     public void update() {
         //System.out.println(extrapolate);
-        changeX  += (velocityX * extrapolate);
+        //changeX  += (velocityX * extrapolate);
         //System.out.println("changeX: " + changeX);
         //System.out.println("sum: " + (int)(actualX + changeX));
         //changeX += 2;
+
+        actualX += velocityX * extrapolate;
+        if (!isLocked) {
+
+        }
+
     }
 
     @Override
     public void draw(Graphics2D g2) {
-        int t = (this.rowPos * 10 + this.colPos);
-        if (t == 1 || t == 2) {
-            //System.out.println( t + ": " +  (int)(actualX + changeX));
-        }
+        // flag
+//        int t = (this.rowPos * 10 + this.colPos);
+//        if (t == 1 || t == 2) {
+//            System.out.println( t + ": " +  (int)(actualX + changeX));
+//        }
 
-        g2.drawImage(img, (int) Math.floor(actualX + changeX), actualY, null);
+        g2.drawImage(img, (int) Math.floor(actualX), actualY, null);
 
     }
 }

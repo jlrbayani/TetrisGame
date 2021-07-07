@@ -24,15 +24,19 @@ public class Board extends Entity {
 
     @Override
     public void setExtrapolation(double extrapolate) {
-        for (Cell c: boardList) {
-            c.setExtrapolation(extrapolate);
+        if (!isPaused) {
+            for (Cell c : boardList) {
+                c.setExtrapolation(extrapolate);
+            }
         }
     }
 
     @Override
     public void update() {
-        for (Entity e: boardList) {
-            e.update();
+        if (!isPaused) {
+            for (Entity e : boardList) {
+                e.update();
+            }
         }
     }
 

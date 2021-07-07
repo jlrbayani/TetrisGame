@@ -16,6 +16,7 @@ public class Game implements Runnable{
     private boolean keepRunning;
     private TetrisFrame frame;
     private Thread gameThread;
+    private CountDownTimer cdt;
 
     private double currentGameSpeed;
 
@@ -42,15 +43,39 @@ public class Game implements Runnable{
     }
 
     public void update() {
+        if (cdt != null && cdt.getIsFinished()) {
+            entityList.remove(cdt);
+            cdt = null;
+            resumeGame();
+        }
        for (Entity e: entityList) {
            e.update();
        }
+    }
+
+    public void pauseGame() {
+        for (Entity e: entityList) {
+            e.pause();
+        }
+    }
+
+    public void resumeGame() {
+        for (Entity e: entityList) {
+            e.resume();
+        }
+    }
+
+    public void startCountDown() {
+        cdt = new CountDownTimer(200, 200);
+        entityList.add(cdt);
     }
 
     public synchronized void startGame() {
         this.keepRunning = true;
         gameThread = new Thread(this, "Game");
         gameThread.start();
+        pauseGame();
+        startCountDown();
     }
 
     public synchronized void endGame() {
@@ -62,6 +87,7 @@ public class Game implements Runnable{
             e.printStackTrace();
         }
     }
+
 
     private void initStartingEntities() {
         gameBoard = new Board(GAME_COLS, GAME_ROWS, 300, 50);

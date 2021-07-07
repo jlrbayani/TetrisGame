@@ -29,6 +29,14 @@ public abstract class Entity {
         return actualY;
     }
 
+    public void pause() {
+        isPaused = true;
+    }
+
+    public void resume() {
+        isPaused = false;
+    }
+
     public abstract void update();
     public abstract void draw(Graphics2D g2);
 

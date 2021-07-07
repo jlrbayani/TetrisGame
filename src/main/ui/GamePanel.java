@@ -94,6 +94,10 @@ public class GamePanel extends JPanel implements ActionListener {
             game.endGame();
             frame.showMenu();
             frame.setTitle("Tetris");
+        } else if (src == pauseGame) {
+            game.pauseGame();
+        } else if (src == options) {
+            game.startCountDown();
         }
     }
 }
