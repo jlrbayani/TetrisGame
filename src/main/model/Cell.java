@@ -62,7 +62,8 @@ public class Cell extends Entity{
 //            flip = false;
 //        }
 
-        System.out.println(changeX);
+
+        //System.out.println(changeX);
         if (!flip) {
             changeX += (velocityX * extrapolate);
         }

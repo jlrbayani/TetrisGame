@@ -29,23 +29,20 @@ public class Game implements Runnable{
     public Game(TetrisFrame frame) {
         this.frame = frame;
         currentGameSpeed = 1;
-        score = new Score();
         lines = 0;
 
         entityList = new ArrayList<>();
         initStartingEntities();
     }
 
-    public void setExtrapolation(double extrapolate) {
+    public synchronized void setExtrapolation(double extrapolate) {
         for (Entity e: entityList) {
             e.setExtrapolation(extrapolate);
         }
     }
 
-    public void update() {
-        if (cdt != null && cdt.getIsFinished()) {
-            entityList.remove(cdt);
-            cdt = null;
+    public synchronized void update() {
+        if (entityList.contains(cdt) && cdt.getIsFinished()) {
             resumeGame();
         }
        for (Entity e: entityList) {
@@ -53,21 +50,27 @@ public class Game implements Runnable{
        }
     }
 
-    public void pauseGame() {
+    public synchronized void pauseGame() {
+        if (cdt != null && cdt.getIsFinished()) {
+            entityList.remove(cdt);
+        }
+
         for (Entity e: entityList) {
             e.pause();
         }
     }
 
-    public void resumeGame() {
+    public synchronized void resumeGame() {
         for (Entity e: entityList) {
             e.resume();
         }
     }
 
-    public void startCountDown() {
-        cdt = new CountDownTimer(200, 200);
-        entityList.add(cdt);
+    public synchronized void startCountDown() {
+        if (!entityList.contains(cdt)) {
+            cdt = new CountDownTimer(440, TetrisFrame.HEIGHT / 5);
+            entityList.add(cdt);
+        }
     }
 
     public synchronized void startGame() {
@@ -81,16 +84,11 @@ public class Game implements Runnable{
     public synchronized void endGame() {
         keepRunning = false;
 
-        try {
-            this.gameThread.join();
-        } catch (InterruptedException e){
-            e.printStackTrace();
-        }
     }
 
 
-    private void initStartingEntities() {
-        gameBoard = new Board(GAME_COLS, GAME_ROWS, 300, 50);
+    private synchronized void initStartingEntities() {
+        gameBoard = new Board(GAME_COLS, GAME_ROWS, 310, 50);
         entityList.add(gameBoard);
 
 //        nextBoard = new Board(NEXT_COLS, NEXT_ROWS);
@@ -98,10 +96,13 @@ public class Game implements Runnable{
 //
 //        holdBoard = new Board(HOLD_COLS, HOLD_ROWS);
 //        entityList.add(holdBoard);
+
+        score = new Score(20, 300);
+        entityList.add(score);
     }
 
 
-    public ArrayList<Entity> getEntityList() {
+    public synchronized ArrayList<Entity> getEntityList() {
         return entityList;
     }
 
@@ -141,6 +142,12 @@ public class Game implements Runnable{
                 frames = 0;
             }
 
+        }
+
+        try {
+            this.gameThread.join();
+        } catch (InterruptedException e){
+            e.printStackTrace();
         }
     }
 }

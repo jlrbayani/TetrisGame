@@ -18,6 +18,7 @@ public class GamePanel extends JPanel implements ActionListener {
     private JButton pauseGame;
     private JButton quitGame;
     private JButton options;
+    private JPanel leftPanel, rightPanel;
 
     public GamePanel(TetrisFrame frame) {
         super();
@@ -26,7 +27,6 @@ public class GamePanel extends JPanel implements ActionListener {
         initLabels();
         initButtons();
         initPanel();
-
     }
 
     // MODIFIES: this
@@ -63,13 +63,48 @@ public class GamePanel extends JPanel implements ActionListener {
     private void initPanel() {
         setPreferredSize(new Dimension(TetrisFrame.WIDTH, TetrisFrame.HEIGHT));
         setBackground(backgroundCol);
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setLayout(new BorderLayout());
 
-        add(hold);
-        add(next);
-        add(pauseGame);
-        add(options);
-        add(quitGame);
+        leftPanel = new JPanel();
+        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
+        leftPanel.setBackground(backgroundCol);
+        rightPanel = new JPanel();
+        rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
+        rightPanel.setBackground(backgroundCol);
+
+
+        leftPanel.add(hold);
+        rightPanel.add(next);
+        leftPanel.add(pauseGame);
+        leftPanel.add(options);
+        leftPanel.add(quitGame);
+
+
+        add(leftPanel, BorderLayout.LINE_START);
+        add(rightPanel, BorderLayout.LINE_END);
+
+
+          // GridBagLayout Attempt
+//        addToGridBagConst(hold, 0, 0, 1, 1, GridBagConstraints.FIRST_LINE_START, 50, 20, -1, -1);
+//        addToGridBagConst(next, 2, 0, 1, 1, GridBagConstraints.FIRST_LINE_END, 50, 20, -1, -1);
+//        addToGridBagConst(pauseGame, 0, 3, 1, 1, GridBagConstraints.LAST_LINE_START, 0, 0, 5, 1);
+//        addToGridBagConst(options, 2, 3, 1, 1, GridBagConstraints.LAST_LINE_END, 0, 0, 5, 1 );
+//        addToGridBagConst(quitGame, 1, 3, 1, 1, GridBagConstraints.PAGE_END, 0, 0, 1, 1 );
+    }
+
+    private void addToGridBagConst(JComponent comp, int gridx, int gridy, int weightx, int weighty, int anchor, int ipadx, int ipady, int gridWidth, int gridHeight) {
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridx = gridx;
+        c.gridy = gridy;
+        c.weightx = weightx;
+        c.weighty = weighty;
+        c.anchor = anchor;
+        c.ipadx = ipadx;
+        c.ipady = ipady;
+        c.gridwidth = gridWidth;
+        c.gridheight = gridHeight;
+
+        add(comp, c);
     }
 
     public void startGame() {
@@ -78,9 +113,12 @@ public class GamePanel extends JPanel implements ActionListener {
     }
 
     @Override
-    protected void paintComponent(Graphics g) {
+    protected synchronized void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
+
+        leftPanel.repaint();
+        rightPanel.repaint();
 
         for (Entity e: game.getEntityList()) {
             e.draw(g2);

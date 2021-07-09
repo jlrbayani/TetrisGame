@@ -34,6 +34,10 @@ public class CountDownTimer extends Entity {
 
     @Override
     public void draw(Graphics2D g2) {
-        g2.drawString(timer + "", actualX, actualY);
+        if (!isFinished) {
+            g2.setColor(Color.WHITE);
+            g2.setFont(new Font(Font.MONOSPACED, Font.BOLD, 80));
+            g2.drawString(timer + "", actualX, actualY);
+        }
     }
 }
