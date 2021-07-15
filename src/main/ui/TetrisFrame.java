@@ -45,7 +45,7 @@ public class TetrisFrame extends JFrame {
     }
 
     public void showHighScores() {
-        // currentPanel = highScoresPanel;
+        //currentPanel = highScoresPanel;
     }
 
     public void showOptions() {

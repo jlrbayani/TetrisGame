@@ -51,7 +51,7 @@ public class Game implements Runnable{
     }
 
     public synchronized void pauseGame() {
-        if (cdt != null && cdt.getIsFinished()) {
+        if (entityList.contains(cdt) && cdt.getIsFinished()) {
             entityList.remove(cdt);
         }
 

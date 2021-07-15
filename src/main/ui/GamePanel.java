@@ -67,32 +67,44 @@ public class GamePanel extends JPanel implements ActionListener {
 
         leftPanel = new JPanel();
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
-        leftPanel.setBackground(backgroundCol);
+        //leftPanel.setBackground(backgroundCol);
         rightPanel = new JPanel();
         rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
-        rightPanel.setBackground(backgroundCol);
+        //rightPanel.setBackground(backgroundCol);
 
+        //leftPanel.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
+        pauseGame.setAlignmentX(Component.CENTER_ALIGNMENT);
+        leftPanel.add(Box.createHorizontalGlue());
+        leftPanel.add(Box.createRigidArea(new Dimension(0, 20)));
         leftPanel.add(hold);
-        rightPanel.add(next);
+        leftPanel.add(add(Box.createRigidArea(new Dimension(0, 400))));
         leftPanel.add(pauseGame);
         leftPanel.add(options);
         leftPanel.add(quitGame);
 
+        next.setAlignmentX(Component.LEFT_ALIGNMENT);
+        rightPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        rightPanel.add(next);
 
+
+
+
+        leftPanel.setOpaque(false);
+        rightPanel.setOpaque(false);
         add(leftPanel, BorderLayout.LINE_START);
         add(rightPanel, BorderLayout.LINE_END);
 
 
           // GridBagLayout Attempt
-//        addToGridBagConst(hold, 0, 0, 1, 1, GridBagConstraints.FIRST_LINE_START, 50, 20, -1, -1);
-//        addToGridBagConst(next, 2, 0, 1, 1, GridBagConstraints.FIRST_LINE_END, 50, 20, -1, -1);
-//        addToGridBagConst(pauseGame, 0, 3, 1, 1, GridBagConstraints.LAST_LINE_START, 0, 0, 5, 1);
-//        addToGridBagConst(options, 2, 3, 1, 1, GridBagConstraints.LAST_LINE_END, 0, 0, 5, 1 );
-//        addToGridBagConst(quitGame, 1, 3, 1, 1, GridBagConstraints.PAGE_END, 0, 0, 1, 1 );
+//        addToGridBagConst(leftPanel, hold, 0, 0, 1, 1, GridBagConstraints.FIRST_LINE_START, 50, 20, -1, -1);
+//        addToGridBagConst(leftPanel, next, 2, 0, 1, 1, GridBagConstraints.FIRST_LINE_END, 50, 20, -1, -1);
+//        addToGridBagConst(leftPanel, pauseGame, 0, 3, 1, 1, GridBagConstraints.LAST_LINE_START, 0, 0, 5, 1);
+//        addToGridBagConst(leftPanel, options, 2, 3, 1, 1, GridBagConstraints.LAST_LINE_END, 0, 0, 5, 1 );
+//        addToGridBagConst(leftPanel, quitGame, 1, 3, 1, 1, GridBagConstraints.PAGE_END, 0, 0, 1, 1 );
     }
 
-    private void addToGridBagConst(JComponent comp, int gridx, int gridy, int weightx, int weighty, int anchor, int ipadx, int ipady, int gridWidth, int gridHeight) {
+    private void addToGridBagConst(JComponent container, JComponent comp, int gridx, int gridy, int weightx, int weighty, int anchor, int ipadx, int ipady, int gridWidth, int gridHeight) {
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = gridx;
         c.gridy = gridy;
@@ -104,7 +116,7 @@ public class GamePanel extends JPanel implements ActionListener {
         c.gridwidth = gridWidth;
         c.gridheight = gridHeight;
 
-        add(comp, c);
+        container.add(comp, c);
     }
 
     public void startGame() {
