@@ -9,6 +9,7 @@ public class TetrisFrame extends JFrame {
     private GamePanel gamePanel;
     private CardLayout cardLayout;
     private JPanel currentPanel;
+    private SoundSystem ss;
 
     public static final int HEIGHT = 720;
     public static final int WIDTH = 920;
@@ -73,5 +74,9 @@ public class TetrisFrame extends JFrame {
 
     public JPanel getCurrentPanel() {
         return currentPanel;
+    }
+
+    public SoundSystem getSoundSystem() {
+        return this.ss;
     }
 }

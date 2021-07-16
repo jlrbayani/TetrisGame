@@ -1,5 +1,6 @@
 package main.model;
 
+import main.ui.SoundSystem;
 import main.ui.TetrisFrame;
 
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ public class Game implements Runnable{
     private TetrisFrame frame;
     private Thread gameThread;
     private CountDownTimer cdt;
+    private SoundSystem ss;
 
     private double currentGameSpeed;
 
@@ -28,6 +30,7 @@ public class Game implements Runnable{
 
     public Game(TetrisFrame frame) {
         this.frame = frame;
+        this.ss = frame.getSoundSystem();
         currentGameSpeed = 1;
         lines = 0;
 
@@ -67,6 +70,8 @@ public class Game implements Runnable{
     }
 
     public synchronized void startCountDown() {
+        Sound blockPlace = new Sound("resources/sounds/BlockPlacementSound.wav", "blockPlaced", 0.5f);
+        blockPlace.start();
         if (!entityList.contains(cdt)) {
             cdt = new CountDownTimer(440, TetrisFrame.HEIGHT / 5);
             entityList.add(cdt);

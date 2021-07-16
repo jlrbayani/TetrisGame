@@ -4,16 +4,18 @@ import javax.sound.sampled.*;
 import java.io.File;
 import java.io.IOException;
 
-public class Sound {
+public class Sound implements Runnable{
 
     private String fileRef;
     private String soundName;
     private Clip clip;
     private float volume;
+    private boolean keepLooping;
 
     public Sound(String fileRef, String soundName, float currentVolume) {
         this.fileRef = fileRef;
         this.soundName = soundName;
+        this.keepLooping = false;
 
         initClip();
         setVolume(currentVolume);
@@ -42,16 +44,24 @@ public class Sound {
         }
     }
 
+    public void setKeepLooping(boolean keepLooping) {
+        this.keepLooping = keepLooping;
+    }
+
+
     public String getSoundName() {
         return soundName;
     }
 
     public void setVolume(float volume) {
-        if (volume < 0.0f || volume > 1.0f) {
-            this.volume = 0.5f;
+        if (volume < 0.0f) {
+            this.volume = 0.0f;
+        } else if (volume > 1.0f) {
+            this.volume = 1.0f;
         } else {
             this.volume = volume;
         }
+
         changeVolume();
     }
 
@@ -81,5 +91,13 @@ public class Sound {
     public void resetSound() {
         clip.stop();
         clip.drain();
+    }
+
+    @Override
+    public void run() {
+        clip.start();
+        if (keepLooping) {
+            clip.loop(Clip.LOOP_CONTINUOUSLY);
+        }
     }
 }
