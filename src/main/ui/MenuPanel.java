@@ -10,9 +10,7 @@ public class MenuPanel extends JPanel implements ActionListener {
     private static final Color backgroundCol = new Color(43, 42, 42);
 
     private JLabel title;
-    private StandardButton start;
-    private StandardButton highScores;
-    private StandardButton options;
+    private StandardButton start, highScores, options;
     private TetrisFrame frame;
 
     public MenuPanel(TetrisFrame frame) {
