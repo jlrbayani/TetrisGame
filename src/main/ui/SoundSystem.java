@@ -5,6 +5,7 @@ import main.model.Sound;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class SoundSystem {
 
@@ -12,6 +13,7 @@ public class SoundSystem {
     private ArrayList<Sound> soundList;
     private float currentVolume;
     private ExecutorService pool;
+    private boolean isMuted;
 
     public SoundSystem() {
         init();
@@ -21,6 +23,7 @@ public class SoundSystem {
         soundList = new ArrayList<>();
         currentVolume = 0.5f;
         pool = Executors.newFixedThreadPool(MAX_T);
+        isMuted = false;
     }
 
     public boolean playSound(String name) {
@@ -45,13 +48,19 @@ public class SoundSystem {
         }
     }
 
+    public float getCurrentVolume() {
+        return currentVolume;
+    }
+
     public void mute() {
+        isMuted = true;
         for (Sound s: soundList) {
             s.mute();
         }
     }
 
     public void unmute() {
+        isMuted = false;
         for (Sound s: soundList) {
             s.unMute();
         }
@@ -72,6 +81,23 @@ public class SoundSystem {
     public void resetSounds() {
         for (Sound s: soundList) {
             s.resetSound();
+        }
+    }
+
+    // MODIFIES: this
+    // EFFECTS: A method which ensures that the pool and any of its remaining threads is shutdown properly. This would be called at the closing of the App.
+    public void closeSoundSystem() {
+        pool.shutdown();
+        try {
+            if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
+                pool.shutdownNow();
+                if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
+                    System.err.println("Pool did not terminate properly!");
+                }
+            }
+        } catch (InterruptedException ie) {
+            pool.shutdownNow();
+            Thread.currentThread().interrupt();
         }
     }
 }

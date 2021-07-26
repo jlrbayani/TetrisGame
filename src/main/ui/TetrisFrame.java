@@ -26,6 +26,8 @@ public class TetrisFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setTitle("Tetris");
 
+        ss = new SoundSystem();
+
         initCards();
         showMenu();
 
@@ -34,6 +36,14 @@ public class TetrisFrame extends JFrame {
         pack();
         setVisible(true);
         centreOnScreen();
+
+        // ensures that a listener keeps track of when the frame is closed to make sure the thread pool in sound system will eventually be safely closed
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                closeSoundSystem();
+                System.exit(0);
+            }
+        });
     }
 
     public void startGame() {
@@ -111,4 +121,10 @@ public class TetrisFrame extends JFrame {
     public SoundSystem getSoundSystem() {
         return this.ss;
     }
+
+    private void closeSoundSystem() {
+        ss.closeSoundSystem();
+        System.out.println("Sound System Closed!");
+    }
+
 }

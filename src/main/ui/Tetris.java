@@ -1,6 +1,5 @@
 package main.ui;
 
-import javax.swing.*;
 import java.awt.*;
 
 public class Tetris {
@@ -8,7 +7,8 @@ public class Tetris {
         System.out.println("Welcome to Tetris!");
 
         EventQueue.invokeLater(() -> {
-            JFrame frame = new TetrisFrame();
+            TetrisFrame frame = new TetrisFrame();
         });
+
     }
 }

@@ -26,17 +26,14 @@ public class MenuPanel extends JPanel implements ActionListener {
     // EFFECTS: initializes all the main buttons of the menu panel
     private void initButtons() {
         start = new StandardButton("START");
-        start.setMaximumSize(new Dimension(170, 37));
         start.setAlignmentX(Component.CENTER_ALIGNMENT);
         start.addActionListener(this);
 
         highScores = new StandardButton("HIGH SCORES");
-        highScores.setMaximumSize(new Dimension(170, 37));
         highScores.setAlignmentX(Component.CENTER_ALIGNMENT);
         highScores.addActionListener(this);
 
         options = new StandardButton("OPTIONS");
-        options.setMaximumSize(new Dimension(170, 37));
         options.setAlignmentX(Component.CENTER_ALIGNMENT);
         options.addActionListener(this);
     }
