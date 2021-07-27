@@ -57,6 +57,7 @@ public class SoundSystem {
         for (Sound s: soundList) {
             s.mute();
         }
+        System.out.println("Is now muted!");
     }
 
     public void unmute() {
@@ -64,6 +65,11 @@ public class SoundSystem {
         for (Sound s: soundList) {
             s.unMute();
         }
+        System.out.println("Is now unmuted!");
+    }
+
+    public boolean isMuted() {
+        return isMuted;
     }
 
     public void pauseAllSounds() {

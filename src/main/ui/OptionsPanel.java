@@ -2,10 +2,7 @@ package main.ui;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.*;
 
 public class OptionsPanel extends JPanel {
     final static String OPTIONSPANEL = "optionsPanel";
@@ -24,6 +21,8 @@ public class OptionsPanel extends JPanel {
     private StandardButton soundSettingsButton, controlsButton, backButton;
     private StandardButton controlsBackButton;
     private StandardButton soundsBackButton;
+    private ImageIcon mutedIcon, unmutedIcon;
+    private JButton muteButton;
 
     public OptionsPanel(TetrisFrame frame) {
         super();
@@ -66,6 +65,14 @@ public class OptionsPanel extends JPanel {
                 Object src = e.getSource();
                 if (src == soundsBackButton) {
                     showOptionsMenu();
+                } else if (src == muteButton) {
+                    if (ss.isMuted()) {
+                        ss.unmute();
+                        muteButton.setIcon(unmutedIcon);
+                    } else if (!ss.isMuted()) {
+                        ss.mute();
+                        muteButton.setIcon(mutedIcon);
+                    }
                 }
             }
         };
@@ -113,7 +120,33 @@ public class OptionsPanel extends JPanel {
         soundSettings.setAlignmentX(Component.CENTER_ALIGNMENT);
         soundSettings.setBackground(backgroundCol);
 
-        volumeControl = new PanelWithMouseList() {
+        volumeControl = initVolumeControl();
+
+        soundSettings.add(Box.createRigidArea(new Dimension(0, 200)));
+        soundSettings.add(volumeControl);
+        soundSettings.add(Box.createRigidArea(new Dimension(0, 10)));
+
+        unmutedIcon = new ImageIcon("resources/icons/unmutedButton.png");
+        mutedIcon = new ImageIcon("resources/icons/mutedButton.png");
+        muteButton = new JButton(unmutedIcon);
+        muteButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        muteButton.setMaximumSize(new Dimension(unmutedIcon.getIconWidth(), unmutedIcon.getIconHeight()));
+        muteButton.addActionListener(soundSettings);
+
+        soundSettings.add(muteButton);
+        soundSettings.add(Box.createRigidArea(new Dimension(0, 100)));
+
+
+        soundsBackButton = new StandardButton("BACK");
+        soundsBackButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        soundsBackButton.addActionListener(soundSettings);
+
+        soundSettings.add(soundsBackButton);
+
+    }
+
+    private PanelWithMouseList initVolumeControl() {
+        return new PanelWithMouseList() {
             private int xPos;
             @Override
             protected void paintComponent(Graphics g) {
@@ -122,27 +155,33 @@ public class OptionsPanel extends JPanel {
                 g2.setColor(Color.BLACK);
                 g2.drawRect(0, 0, WIDTH, HEIGHT);
 
-                g2.setColor(Color.RED);
-                g2.fillRect(volumeControl.leftOffset, 0, (int) (ss.getCurrentVolume() * (WIDTH - volumeControl.rightOffset)), HEIGHT);
+                int currentVolumeVisual = (int) (ss.getCurrentVolume() * WIDTH);
+                int emptySpaceVisual = WIDTH - currentVolumeVisual;
+
+                g2.setColor(Color.GREEN);
+                g2.fillRect(0, 0, currentVolumeVisual, HEIGHT);
                 g2.setColor(Color.WHITE);
-                g2.fillRect((int) (ss.getCurrentVolume() * WIDTH), 0, WIDTH - volumeControl.rightOffset - (int) (ss.getCurrentVolume() * WIDTH), HEIGHT);
+                g2.fillRect(currentVolumeVisual, 0, emptySpaceVisual, HEIGHT);
             }
 
             @Override
             public void mouseClicked(MouseEvent e) {
                 this.xPos = e.getX();
                 System.out.println("xPos: " + xPos);
-                float volumeRatio;
-                if (xPos < volumeControl.leftOffset) {
-                    volumeRatio = 0;
-                } else if (xPos > WIDTH - volumeControl.rightOffset) {
-                    volumeRatio = 1;
-                } else {
-                    volumeRatio = (float) xPos / (float) WIDTH;
-                }
+                float volumeRatio = (float) xPos / (float) WIDTH;
                 ss.setVolume(volumeRatio);
-                this.repaint();
+                repaint();
                 System.out.println("Clicked!");
+            }
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                if (e.getX() > WIDTH) {
+                    ss.setVolume(1f);
+                } else if (e.getX() < 0) {
+                    ss.setVolume(0f);
+                }
+                repaint();
             }
 
             @Override
@@ -157,17 +196,6 @@ public class OptionsPanel extends JPanel {
                 System.out.println("Exited!");
             }
         };
-
-        soundSettings.add(Box.createRigidArea(new Dimension(0, 200)));
-        soundSettings.add(volumeControl);
-        soundSettings.add(Box.createRigidArea(new Dimension(0, 200)));
-
-        soundsBackButton = new StandardButton("BACK");
-        soundsBackButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        soundsBackButton.addActionListener(soundSettings);
-
-        soundSettings.add(soundsBackButton);
-
     }
 
     private void initControls() {
@@ -203,7 +231,7 @@ public class OptionsPanel extends JPanel {
         frame.returnToPreviousPanel();
     }
 
-    private abstract class PanelWithActList extends JPanel implements ActionListener {
+    private abstract static class PanelWithActList extends JPanel implements ActionListener {
         public PanelWithActList() {
             super();
         }
@@ -212,10 +240,9 @@ public class OptionsPanel extends JPanel {
         public abstract void actionPerformed(ActionEvent e);
     }
 
-    private abstract class PanelWithMouseList extends JPanel implements MouseListener {
-        final static int WIDTH = 220;
+    private abstract static class PanelWithMouseList extends JPanel implements MouseListener, MouseMotionListener {
+        final static int WIDTH = 200;
         final static int HEIGHT = 30;
-        private int leftOffset, rightOffset;
         public PanelWithMouseList() {
             super();
             setPreferredSize(new Dimension(WIDTH, HEIGHT));
@@ -223,8 +250,7 @@ public class OptionsPanel extends JPanel {
             setBackground(backgroundCol);
             setAlignmentX(Component.CENTER_ALIGNMENT);
             addMouseListener(this);
-            leftOffset = 10;
-            rightOffset = 10;
+            addMouseMotionListener(this);
         }
 
         @Override
@@ -232,6 +258,9 @@ public class OptionsPanel extends JPanel {
 
         @Override
         public void mouseReleased(MouseEvent e) {}
+
+        @Override
+        public void mouseMoved(MouseEvent e) {}
     }
 }
 

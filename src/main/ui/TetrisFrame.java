@@ -9,6 +9,7 @@ public class TetrisFrame extends JFrame {
     private GamePanel gamePanel;
     private OptionsPanel optionsPanel;
     private HighScoresPanel highScoresPanel;
+    private PausedPanel pausedPanel;
 
     private CardLayout cardLayout;
     private JPanel currentPanel, previousPanel;
@@ -71,6 +72,18 @@ public class TetrisFrame extends JFrame {
         cardLayout.show(cards, OptionsPanel.OPTIONSPANEL);
     }
 
+    public void showPausedPanel() {
+        previousPanel = currentPanel;
+        currentPanel = pausedPanel;
+        cardLayout.show(cards, PausedPanel.PAUSEDPANEL);
+    }
+
+    public void showGamePanel() {
+        previousPanel = currentPanel;
+        currentPanel = gamePanel;
+        cardLayout.show(cards, GamePanel.GAMEPANEL);
+    }
+
     private void initCards() {
         cards = new JPanel(new CardLayout());
         cardLayout = (CardLayout) (cards.getLayout());
@@ -87,6 +100,9 @@ public class TetrisFrame extends JFrame {
 
         highScoresPanel = new HighScoresPanel(this);
         cards.add(highScoresPanel, HighScoresPanel.HIGHSCORESPANEL);
+
+        pausedPanel = new PausedPanel(this, gamePanel);
+        cards.add(pausedPanel, PausedPanel.PAUSEDPANEL);
     }
 
     // MODIFIES: this
@@ -109,6 +125,8 @@ public class TetrisFrame extends JFrame {
             showOptions();
         } else if (highScoresPanel.equals(currentPanel)) {
             showHighScores();
+        } else if (pausedPanel.equals(currentPanel)) {
+            showPausedPanel();
         }
     }
 
