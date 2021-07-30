@@ -27,10 +27,12 @@ public class SoundSystem {
     }
 
     public boolean playSound(String name) {
-        for (Sound s: soundList) {
-            if (name.equals(s.getSoundName())) {
-                pool.execute(s);
-                return true;
+        if (!isMuted) {
+            for (Sound s : soundList) {
+                if (name.equals(s.getSoundName())) {
+                    pool.execute(s);
+                    return true;
+                }
             }
         }
 
@@ -38,7 +40,9 @@ public class SoundSystem {
     }
 
     public void addToSounds(Sound s) {
-        soundList.add(s);
+        if (!soundList.contains(s)) {
+            soundList.add(s);
+        }
     }
 
     public void setVolume(float volume) {
@@ -80,7 +84,7 @@ public class SoundSystem {
 
     public void resumeFromPause() {
         for (Sound s: soundList) {
-            s.start();
+            s.resume();
         }
     }
 

@@ -15,6 +15,7 @@ public class Game implements Runnable{
     private final int HOLD_ROWS = 4;
 
     private boolean keepRunning;
+    private boolean isPaused;
     private TetrisFrame frame;
     private Thread gameThread;
     private CountDownTimer cdt;
@@ -23,19 +24,26 @@ public class Game implements Runnable{
     private double currentGameSpeed;
 
     private Board holdBoard, gameBoard, nextBoard;
+    private ScoreMultiplier scoreMultiplier;
     private Score score;
     private int lines;
 
     private ArrayList<Entity> entityList;
+    private Sound blockPlace;
 
     public Game(TetrisFrame frame) {
         this.frame = frame;
         this.ss = frame.getSoundSystem();
         currentGameSpeed = 1;
         lines = 0;
+        isPaused = false;
 
         entityList = new ArrayList<>();
         initStartingEntities();
+    }
+
+    public boolean isPaused() {
+        return isPaused;
     }
 
     public synchronized void setExtrapolation(double extrapolate) {
@@ -45,8 +53,9 @@ public class Game implements Runnable{
     }
 
     public synchronized void update() {
-        if (entityList.contains(cdt) && cdt.getIsFinished()) {
+        if (entityList.contains(cdt) && cdt.getIsFinished() && isPaused) {
             resumeGame();
+            isPaused = false;
         }
        for (Entity e: entityList) {
            e.update();
@@ -61,21 +70,27 @@ public class Game implements Runnable{
         for (Entity e: entityList) {
             e.pause();
         }
+        ss.pauseAllSounds();
     }
 
     public synchronized void resumeGame() {
         for (Entity e: entityList) {
             e.resume();
         }
+        System.out.println("Resuming game!");
+        ss.resetSounds();
+        ss.resumeFromPause();
     }
 
     public synchronized void startCountDown() {
-        Sound blockPlace = new Sound("resources/sounds/BlockPlacementSound.wav", "blockPlaced", 0.5f);
-        blockPlace.start();
+        blockPlace = new Sound("resources/sounds/BlockPlacementSound.wav", "blockPlaced", ss.getCurrentVolume());
+        ss.addToSounds(blockPlace);
+        ss.playSound(blockPlace.getSoundName());
         if (!entityList.contains(cdt)) {
             cdt = new CountDownTimer(440, TetrisFrame.HEIGHT / 5);
             entityList.add(cdt);
         }
+        isPaused = true;
     }
 
     public synchronized void startGame() {
@@ -96,14 +111,14 @@ public class Game implements Runnable{
         gameBoard = new Board(GAME_COLS, GAME_ROWS, 310, 50);
         entityList.add(gameBoard);
 
-//        nextBoard = new Board(NEXT_COLS, NEXT_ROWS);
-//        entityList.add(nextBoard);
-//
-//        holdBoard = new Board(HOLD_COLS, HOLD_ROWS);
-//        entityList.add(holdBoard);
+        nextBoard = new Board(NEXT_COLS, NEXT_ROWS, 750, 100);
+        entityList.add(nextBoard);
 
-        score = new Score(20, 300);
-        entityList.add(score);
+        holdBoard = new Board(HOLD_COLS, HOLD_ROWS, 50, 100);
+        entityList.add(holdBoard);
+
+        scoreMultiplier = new ScoreMultiplier(20, 300);
+        entityList.add(scoreMultiplier);
     }
 
 
@@ -139,6 +154,7 @@ public class Game implements Runnable{
             setExtrapolation(lag / MS_PER_UPDATE);
             frame.getCurrentPanel().repaint();
             frames++;
+
 
             while (System.currentTimeMillis() - timer > 1000) {
                 timer += 1000;

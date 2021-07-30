@@ -10,12 +10,14 @@ public class Sound implements Runnable{
     private String soundName;
     private Clip clip;
     private float volume;
+    private long clipStopSec;
     private boolean keepLooping;
 
     public Sound(String fileRef, String soundName, float currentVolume) {
         this.fileRef = fileRef;
         this.soundName = soundName;
         this.keepLooping = false;
+        clipStopSec = 0;
 
         initClip();
         setVolume(currentVolume);
@@ -65,6 +67,10 @@ public class Sound implements Runnable{
         changeVolume();
     }
 
+    public float getVolume() {
+        return volume;
+    }
+
     public void changeVolume() {
         FloatControl masterGainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
         masterGainControl.setValue(20f * (float) Math.log10(volume));
@@ -80,11 +86,16 @@ public class Sound implements Runnable{
         booleanControl.setValue(false);
     }
 
-    public void start() {
-        clip.start();
+    public void resume() {
+        clip.setMicrosecondPosition(clipStopSec);
+        if (clipStopSec != 0) {
+            clip.start();
+            clipStopSec = 0;
+        }
     }
 
     public void pause() {
+        clipStopSec = clip.getMicrosecondPosition();
         clip.stop();
     }
 
