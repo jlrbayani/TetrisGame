@@ -9,13 +9,18 @@ public class Board extends Entity {
     private ArrayList<Cell> boardList;
     private int actualX, actualY;
     private double extrapolate;
+    private int pieceRow, pieceCol;
 
-    public Board(int numCols, int numRows, int actualX, int actualY) {
+
+    public Board(int numCols, int numRows, int actualX, int actualY, int pieceRow, int pieceCol) {
         this.numCols = numCols;
         this.numRows = numRows;
 
         this.actualX = actualX;
         this.actualY = actualY;
+
+        this.pieceRow = pieceRow;
+        this.pieceCol = pieceCol;
 
         initBoard();
         // for testing purposes
@@ -37,6 +42,7 @@ public class Board extends Entity {
             for (Entity e : boardList) {
                 e.update();
             }
+
         }
     }
 
@@ -60,6 +66,54 @@ public class Board extends Entity {
             currentY += Cell.SIZE;
             currentX = actualX;
         }
+    }
+
+    public void addTetrisPiece(TetrisPiece tp) {
+        ArrayList<Cell> matrix = tp.getOriginalMatrix();
+        for (int row = 0; row < TetrisPiece.MATRIX_NUM_ROWS; row++) {
+            for (int col = 0; col < TetrisPiece.MATRIX_NUM_COLS; col++) {
+                Cell currentCell = matrix.get(row * TetrisPiece.MATRIX_NUM_COLS + col);
+                if (currentCell.isFilled()) {
+                    Cell actualCell = boardList.get((row + pieceRow) * numCols + col);
+//                    if (actualCell == null) {
+//                        System.out.println("Actual is null at: " + row * numRows + col);
+//                    } else {
+//                        System.out.println("Current Matrix Cell Index: " + currentCell.getIndex(TetrisPiece.MATRIX_NUM_ROWS));
+//                        System.out.println("Actual Cell: " + actualCell.getIndex(numCols));
+//                    }
+                    if (actualCell != null) {
+                        actualCell.addBlock(currentCell.getBlock());
+                    }
+                    if (actualCell != null) {
+                        actualCell.getBlock().lockBlock(actualCell);
+                    }
+                }
+            }
+        }
+    }
+
+    public void setPieceRow(int pieceRow) {
+        this.pieceRow = pieceRow;
+    }
+
+    public void setPieceCol(int pieceCol) {
+        this.pieceCol = pieceCol;
+    }
+
+    public void shiftPieceRow(int offset) {
+        this.pieceRow += offset;
+    }
+
+    public int getPieceRow() {
+        return pieceRow;
+    }
+
+    public void shiftPieceCol(int offset) {
+        this.pieceCol += offset;
+    }
+
+    public int getPieceCol() {
+        return pieceCol;
     }
 
     public void clearBoard() {

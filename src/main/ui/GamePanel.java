@@ -7,8 +7,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 
-public class GamePanel extends JPanel implements ActionListener {
+public class GamePanel extends JPanel implements ActionListener, KeyListener {
     final static String GAMEPANEL = "gamePanel";
     private static final Color backgroundCol = new Color(43, 42, 42);
 
@@ -25,6 +27,8 @@ public class GamePanel extends JPanel implements ActionListener {
         initLabels();
         initButtons();
         initPanel();
+
+        this.addKeyListener(this);
     }
 
     // MODIFIES: this
@@ -65,6 +69,7 @@ public class GamePanel extends JPanel implements ActionListener {
         add(leftPanel);
         add(centrePanel);
         add(rightPanel);
+        requestFocusInWindow();
     }
 
     private void initLeftPanel() {
@@ -128,7 +133,6 @@ public class GamePanel extends JPanel implements ActionListener {
         rightPanel.add(nextContainer);
         rightPanel.add(Box.createRigidArea(new Dimension(40, 100)));
         rightPanel.setOpaque(false);
-
     }
 
     public void startGame() {
@@ -151,6 +155,7 @@ public class GamePanel extends JPanel implements ActionListener {
         for (Entity e: game.getEntityList()) {
             e.draw(g2);
         }
+
     }
 
     @Override
@@ -159,6 +164,74 @@ public class GamePanel extends JPanel implements ActionListener {
         if (src == pauseGame && !game.isPaused()) {
             game.pauseGame();
             frame.showPausedPanel();
+        }
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) { }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        boolean[] keys = game.getKeyPressControls();
+        System.out.println("KeyPressed: " + e.getKeyCode());
+
+        switch (e.getKeyCode()) {
+            case KeyEvent.VK_ESCAPE:
+                keys[0] = true;
+                break;
+            case KeyEvent.VK_SPACE:
+                keys[1] = true;
+                break;
+            case KeyEvent.VK_LEFT:
+                keys[2] = true;
+                break;
+            case KeyEvent.VK_RIGHT:
+                keys[3] = true;
+                break;
+            case KeyEvent.VK_DOWN:
+                keys[4] = true;
+                break;
+            case KeyEvent.VK_UP:
+                keys[5] = true;
+                break;
+            case KeyEvent.VK_Z:
+                keys[6] = true;
+                break;
+            case KeyEvent.VK_C:
+                keys[7] = true;
+                break;
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        boolean[] keys = game.getKeyPressControls();
+
+        switch (e.getKeyCode()) {
+            case KeyEvent.VK_ESCAPE:
+                keys[0] = false;
+                break;
+            case KeyEvent.VK_SPACE:
+                keys[1] = false;
+                break;
+            case KeyEvent.VK_LEFT:
+                keys[2] = false;
+                break;
+            case KeyEvent.VK_RIGHT:
+                keys[3] = false;
+                break;
+            case KeyEvent.VK_DOWN:
+                keys[4] = false;
+                break;
+            case KeyEvent.VK_UP:
+                keys[5] = false;
+                break;
+            case KeyEvent.VK_Z:
+                keys[6] = false;
+                break;
+            case KeyEvent.VK_C:
+                keys[7] = false;
+                break;
         }
     }
 

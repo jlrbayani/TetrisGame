@@ -4,6 +4,7 @@ import main.ui.SoundSystem;
 import main.ui.TetrisFrame;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 public class Game implements Runnable{
     private final double MS_PER_UPDATE = 16.5;
@@ -22,12 +23,16 @@ public class Game implements Runnable{
     private SoundSystem ss;
 
     private double currentGameSpeed;
-
     private Board holdBoard, gameBoard, nextBoard;
     private ScoreMultiplier scoreMultiplier;
     private Score score;
     private int lines;
 
+    private TetrisPiece pieceInPlay;
+    private TetrisPiece heldPiece;
+    private LinkedList<TetrisPiece> nextPieces;
+
+    private boolean[] keyPressControls;
     private ArrayList<Entity> entityList;
     private Sound blockPlace;
 
@@ -39,7 +44,11 @@ public class Game implements Runnable{
         isPaused = false;
 
         entityList = new ArrayList<>();
+        heldPiece = null;
+        pieceInPlay = null;
         initStartingEntities();
+
+        keyPressControls = new boolean[8];
     }
 
     public boolean isPaused() {
@@ -59,6 +68,13 @@ public class Game implements Runnable{
         }
        for (Entity e: entityList) {
            e.update();
+       }
+
+       updateHeldPiece();
+       updatePieceInPlay();
+       updateNextPieces();
+       if (pieceInPlay == null) {
+           getNewPieceInPlay();
        }
     }
 
@@ -80,6 +96,7 @@ public class Game implements Runnable{
         System.out.println("Resuming game!");
         ss.resetSounds();
         ss.resumeFromPause();
+        frame.getCurrentPanel().requestFocusInWindow();
     }
 
     public synchronized void startCountDown() {
@@ -108,22 +125,118 @@ public class Game implements Runnable{
 
 
     private synchronized void initStartingEntities() {
-        gameBoard = new Board(GAME_COLS, GAME_ROWS, 310, 50);
+        gameBoard = new Board(GAME_COLS, GAME_ROWS, 310, 50, 0, 3);
         entityList.add(gameBoard);
 
-        nextBoard = new Board(NEXT_COLS, NEXT_ROWS, 750, 100);
+        nextBoard = new Board(NEXT_COLS, NEXT_ROWS, 750, 100, 0, 0);
         entityList.add(nextBoard);
+        nextPieces = new LinkedList<>();
 
-        holdBoard = new Board(HOLD_COLS, HOLD_ROWS, 50, 100);
+        for (int i = 0; i < 3; i++) {
+            nextPieces.add(new TetrisPiece(7));
+        }
+
+        holdBoard = new Board(HOLD_COLS, HOLD_ROWS, 50, 100, 0, 0);
         entityList.add(holdBoard);
 
         scoreMultiplier = new ScoreMultiplier(20, 300);
         entityList.add(scoreMultiplier);
     }
 
+    private void updateHeldPiece() {
+        if (heldPiece != null) {
+            holdBoard.addTetrisPiece(heldPiece);
+        }
+    }
+
+    private void updatePieceInPlay() {
+        if (pieceInPlay != null) {
+            gameBoard.addTetrisPiece(pieceInPlay);
+        }
+    }
+
+    private void updateNextPieces() {
+        //nextBoard.clearBoard();
+        for (int i = 0; i < 3; i++) {
+            nextBoard.addTetrisPiece(nextPieces.get(i));
+            nextBoard.shiftPieceRow(6);
+        }
+        nextBoard.setPieceRow(0);
+    }
+
+    public void getNewPieceInPlay() {
+        TetrisPiece newPiece = nextPieces.remove();
+        nextPieces.add(new TetrisPiece(7));
+        pieceInPlay = newPiece;
+    }
 
     public synchronized ArrayList<Entity> getEntityList() {
         return entityList;
+    }
+
+    public boolean[] getKeyPressControls() {
+        return keyPressControls;
+    }
+
+    public void processInput() {
+
+        if (keyPressControls[0]) {
+            if (!isPaused) {
+                pauseGame();
+                frame.showPausedPanel();
+            } else {
+                resumeGame();
+                frame.showGamePanel();
+            }
+            keyPressControls[0] = false;
+        }
+
+        if (isPaused) {
+            return;
+        }
+
+        if (keyPressControls[1] && pieceInPlay != null) {
+            System.out.println("Fast Drop!");
+            pieceInPlay.fastDrop();
+        }
+
+        if (keyPressControls[2] && pieceInPlay != null) {
+            System.out.println("Move Left");
+            pieceInPlay.moveLeft();
+        }
+
+        if (keyPressControls[3] && pieceInPlay != null) {
+            System.out.println("Move Right!");
+            pieceInPlay.moveRight();
+        }
+
+        if (keyPressControls[4] && pieceInPlay != null) {
+            System.out.println("Soft Drop!");
+            pieceInPlay.softDrop();
+        }
+
+        if (keyPressControls[5] && pieceInPlay != null) {
+            System.out.println("Rotate Right!");
+            pieceInPlay.rotateRight();
+        }
+
+        if (keyPressControls[6] && pieceInPlay != null) {
+            System.out.println("Rotate Left!");
+            pieceInPlay.rotateLeft();
+        }
+
+        if (keyPressControls[7] && pieceInPlay != null) {
+            System.out.println("Swapping Hold!");
+            if (heldPiece == null) {
+                heldPiece = pieceInPlay;
+                getNewPieceInPlay();
+            } else {
+                TetrisPiece swap = heldPiece;
+                heldPiece = pieceInPlay;
+                pieceInPlay = swap;
+            }
+
+        }
     }
 
     // covers the main game loop
@@ -142,7 +255,7 @@ public class Game implements Runnable{
             previous = current;
             lag += elapsed;
 
-            // processInput();
+            processInput();
 
             while (lag >= MS_PER_UPDATE) {
                 update();
@@ -152,15 +265,19 @@ public class Game implements Runnable{
 
             //System.out.println(lag / MS_PER_UPDATE);
             setExtrapolation(lag / MS_PER_UPDATE);
-            frame.getCurrentPanel().repaint();
+            //frame.getCurrentPanel().repaint();
             frames++;
-
 
             while (System.currentTimeMillis() - timer > 1000) {
                 timer += 1000;
                 frame.setTitle("Tetris | updates: " + updates + " | fps: " + frames);
                 updates = 0;
                 frames = 0;
+//                if (pieceInPlay != null) {
+//                    gameBoard.clearBoard();
+//                    pieceInPlay.rotateLeft();
+//                }
+
             }
 
         }

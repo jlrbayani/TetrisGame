@@ -13,7 +13,7 @@ public class Block extends Entity{
     private BufferedImage img;
     private Cell cell;
     private TetrisPiece.Type blockType;
-    private boolean isLocked;
+    private boolean isLocked, flip;
 
     public enum Dir {
         DOWN, LEFT, RIGHT
@@ -32,7 +32,7 @@ public class Block extends Entity{
         this.colPos = cell.getColPos();
         this.blockType = blockType;
         this.isLocked = true;
-
+        this.flip = false;
         this.velocityX = 2;
 
         setBlockImg(this.blockType);
@@ -98,11 +98,28 @@ public class Block extends Entity{
         //System.out.println("sum: " + (int)(actualX + changeX));
         //changeX += 2;
 
-        actualX += velocityX * extrapolate;
-        if (!isLocked) {
-
+        //actualX += velocityX * extrapolate;
+//        if (!isLocked) {
+//
+//        }
+        if (cell != null) {
+            //System.out.println("Cell is not null");
+            lockBlock(cell);
         }
 
+        if (!flip) {
+            changeX += (velocityX * extrapolate);
+        }
+        if (flip) {
+            changeX -= (velocityX * extrapolate);
+        }
+
+        if (changeX > 200) {
+            flip = true;
+        }
+        if (changeX < 1) {
+            flip = false;
+        }
     }
 
     @Override
@@ -113,7 +130,7 @@ public class Block extends Entity{
 //            System.out.println( t + ": " +  (int)(actualX + changeX));
 //        }
 
-        g2.drawImage(img, (int) Math.floor(actualX), actualY, null);
+        g2.drawImage(img, (int) (Math.floor(actualX)+ changeX), actualY, null);
 
     }
 }

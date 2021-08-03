@@ -28,6 +28,12 @@ public class Cell extends Entity{
         //addBlock(new Block(TetrisPiece.Type.I, this));
     }
 
+    public Cell(int rowPos, int colPos) {
+        this.rowPos = rowPos;
+        this.colPos = colPos;
+
+    }
+
     public int getColPos() {
         return colPos;
     }
@@ -138,6 +144,14 @@ public class Cell extends Entity{
 
     public void setAlpha(float alpha) {
         this.alpha = alpha;
+    }
+
+    public int getIndex(int maxRow) {
+        return rowPos * maxRow + colPos;
+    }
+
+    public Block getBlock() {
+        return block;
     }
 
 }
