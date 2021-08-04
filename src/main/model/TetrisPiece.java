@@ -66,14 +66,34 @@ public class TetrisPiece extends Entity{
                 truePos.add(13);
                 break;
             case J:
+                truePos.add(1);
+                truePos.add(5);
+                truePos.add(8);
+                truePos.add(9);
                 break;
             case L:
+                truePos.add(1);
+                truePos.add(5);
+                truePos.add(9);
+                truePos.add(10);
                 break;
             case O:
+                truePos.add(5);
+                truePos.add(6);
+                truePos.add(9);
+                truePos.add(10);
                 break;
             case S:
+                truePos.add(1);
+                truePos.add(2);
+                truePos.add(4);
+                truePos.add(5);
                 break;
             case T:
+                truePos.add(1);
+                truePos.add(4);
+                truePos.add(5);
+                truePos.add(6);
                 break;
             case Z:
                 truePos.add(4);

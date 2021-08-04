@@ -52,24 +52,6 @@ public class Cell extends Entity{
 
     @Override
     public void update() {
-//        if (!flip) {
-//            changeX = (velocityX * extrapolate);
-//            actualX += changeX;
-//        }
-//        if (flip) {
-//            changeX = (velocityX * extrapolate);
-//            actualX -= changeX;
-//        }
-//
-//        if (actualX > 550) {
-//            flip = true;
-//        }
-//        if (actualX < 300) {
-//            flip = false;
-//        }
-
-
-        //System.out.println(changeX);
         if (!flip) {
             changeX += (velocityX * extrapolate);
         }
@@ -84,12 +66,20 @@ public class Cell extends Entity{
             flip = false;
         }
 
-        //changeX += 30;
         if (isFilled()) {
             block.update();
+            if (changeX != block.getChangeX()) {
+                block.setChangeX(changeX);
+            }
+            if (changeY != block.getChangeY()) {
+                block.setChangeY(changeY);
+            }
+//            System.out.println("Cell x: " + changeX);
+//            System.out.println("Block x: " + block.getChangeX());
+//            System.out.println("Cell y: " + changeY);
+//            System.out.println("Block y: " + block.getChangeY());
+
         }
-        //System.out.println(extrapolate);
-        //changeX += 2;
     }
 
     @Override
@@ -101,7 +91,6 @@ public class Cell extends Entity{
             alphaCom = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
             g2.setComposite(alphaCom);
             g2.fill(rect);
-            //g2.drawRect(actualX, actualY, SIZE, SIZE);
         } else {
             block.draw(g2);
         }

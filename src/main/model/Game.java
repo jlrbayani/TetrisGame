@@ -133,7 +133,7 @@ public class Game implements Runnable{
         nextPieces = new LinkedList<>();
 
         for (int i = 0; i < 3; i++) {
-            nextPieces.add(new TetrisPiece(7));
+            nextPieces.add(new TetrisPiece(6));
         }
 
         holdBoard = new Board(HOLD_COLS, HOLD_ROWS, 50, 100, 0, 0);
@@ -141,6 +141,12 @@ public class Game implements Runnable{
 
         scoreMultiplier = new ScoreMultiplier(20, 300);
         entityList.add(scoreMultiplier);
+    }
+
+    public void getNewPieceInPlay() {
+        TetrisPiece newPiece = nextPieces.remove();
+        nextPieces.add(new TetrisPiece(6));
+        pieceInPlay = newPiece;
     }
 
     private void updateHeldPiece() {
@@ -162,12 +168,6 @@ public class Game implements Runnable{
             nextBoard.shiftPieceRow(6);
         }
         nextBoard.setPieceRow(0);
-    }
-
-    public void getNewPieceInPlay() {
-        TetrisPiece newPiece = nextPieces.remove();
-        nextPieces.add(new TetrisPiece(7));
-        pieceInPlay = newPiece;
     }
 
     public synchronized ArrayList<Entity> getEntityList() {
@@ -227,6 +227,7 @@ public class Game implements Runnable{
 
         if (keyPressControls[7] && pieceInPlay != null) {
             System.out.println("Swapping Hold!");
+            nextBoard.clearBoard();
             if (heldPiece == null) {
                 heldPiece = pieceInPlay;
                 getNewPieceInPlay();
@@ -273,10 +274,10 @@ public class Game implements Runnable{
                 frame.setTitle("Tetris | updates: " + updates + " | fps: " + frames);
                 updates = 0;
                 frames = 0;
-//                if (pieceInPlay != null) {
-//                    gameBoard.clearBoard();
-//                    pieceInPlay.rotateLeft();
-//                }
+                if (pieceInPlay != null) {
+                    gameBoard.clearBoard();
+                    pieceInPlay.rotateRight();
+                }
 
             }
 

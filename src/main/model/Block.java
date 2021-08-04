@@ -39,22 +39,35 @@ public class Block extends Entity{
     }
 
     private void setBlockImg(TetrisPiece.Type blockType) {
+        String s = "";
         switch (blockType) {
             case I:
-                try {
-                    img = ImageIO.read(new File("resources/blocks/blockI.png"));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                s = "I";
+                break;
+            case J:
+                s = "J";
+                break;
+            case L:
+                s = "L";
+                break;
+            case O:
+                s = "O";
+                break;
+            case S:
+                s = "S";
+                break;
+            case T:
+                s = "T";
                 break;
             case Z:
-                try {
-                    img = ImageIO.read(new File("resources/blocks/blockZ.png"));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                s = "Z";
                 break;
-            default:
+        }
+
+        try {
+            img = ImageIO.read(new File("resources/blocks/block" + s +".png"));
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -103,7 +116,7 @@ public class Block extends Entity{
 //
 //        }
         if (cell != null) {
-            //System.out.println("Cell is not null");
+//            System.out.println("Cell is not null");
             lockBlock(cell);
         }
 
@@ -130,7 +143,7 @@ public class Block extends Entity{
 //            System.out.println( t + ": " +  (int)(actualX + changeX));
 //        }
 
-        g2.drawImage(img, (int) (Math.floor(actualX)+ changeX), actualY, null);
+        g2.drawImage(img, (int) (actualX + changeX), actualY, null);
 
     }
 }

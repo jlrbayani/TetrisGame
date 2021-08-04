@@ -4,7 +4,9 @@ import java.awt.*;
 
 public abstract class Entity {
 
-    protected double extrapolate, changeX, changeY;
+    protected double extrapolate;
+    protected double changeX;
+    protected double changeY;
     protected int actualX, actualY, velocityX, velocityY;
     protected boolean isPaused;
 
@@ -27,6 +29,22 @@ public abstract class Entity {
 
     public int getActualY() {
         return actualY;
+    }
+
+    public double getChangeX() {
+        return changeX;
+    }
+
+    public double getChangeY() {
+        return changeY;
+    }
+
+    public void setChangeX(double changeX) {
+        this.changeX = changeX;
+    }
+
+    public void setChangeY(double changeY) {
+        this.changeY = changeY;
     }
 
     public void pause() {
