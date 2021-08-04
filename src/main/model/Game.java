@@ -133,7 +133,7 @@ public class Game implements Runnable{
         nextPieces = new LinkedList<>();
 
         for (int i = 0; i < 3; i++) {
-            nextPieces.add(new TetrisPiece(6));
+            nextPieces.add(new TetrisPiece(2));
         }
 
         holdBoard = new Board(HOLD_COLS, HOLD_ROWS, 50, 100, 0, 0);
@@ -145,7 +145,7 @@ public class Game implements Runnable{
 
     public void getNewPieceInPlay() {
         TetrisPiece newPiece = nextPieces.remove();
-        nextPieces.add(new TetrisPiece(6));
+        nextPieces.add(new TetrisPiece(2));
         pieceInPlay = newPiece;
     }
 
