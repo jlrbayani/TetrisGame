@@ -10,12 +10,12 @@ import java.util.LinkedList;
 
 public class Game implements Runnable{
     private final double MS_PER_UPDATE = 16.5;
-    private final int GAME_COLS = 10;
-    private final int GAME_ROWS = 21;
-    private final int NEXT_COLS = 4;
-    private final int NEXT_ROWS = 16;
-    private final int HOLD_COLS = 4;
-    private final int HOLD_ROWS = 4;
+    public static final int GAME_COLS = 10;
+    public static final int GAME_ROWS = 21;
+    public static  final int NEXT_COLS = 4;
+    public static  final int NEXT_ROWS = 16;
+    public static  final int HOLD_COLS = 4;
+    public static  final int HOLD_ROWS = 4;
 
     private boolean keepRunning;
     private boolean isPaused;
@@ -165,6 +165,7 @@ public class Game implements Runnable{
     private void updatePieceInPlay() {
         if (pieceInPlay != null) {
             gameBoard.addTetrisPiece(pieceInPlay);
+            pieceInPlay.setPieceToMove(true);
         }
     }
 
@@ -245,13 +246,17 @@ public class Game implements Runnable{
             case KeyEvent.VK_C:
                 if (canSwap) {
                     System.out.println("Swapping!");
+                    pieceInPlay.resetRotation();
                     if (heldPiece == null) {
                         heldPiece = pieceInPlay;
+                        heldPiece.setPieceToMove(false);
                         getNewPieceInPlay();
                     } else {
                         TetrisPiece swap = heldPiece;
                         heldPiece = pieceInPlay;
+                        heldPiece.setPieceToMove(false);
                         pieceInPlay = swap;
+                        pieceInPlay.setPieceToMove(true);
                     }
                     holdBoard.clearBoard();
                     canSwap = false;

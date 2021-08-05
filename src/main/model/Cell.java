@@ -2,7 +2,6 @@ package main.model;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
 
 public class Cell extends Entity{
 
@@ -10,10 +9,10 @@ public class Cell extends Entity{
     private int colPos, rowPos;
     private Block block;
     private float alpha;
-    private BufferedImage bI;
     private boolean isGhost, flip;
+    private Board board;
 
-    public Cell(int rowPos, int colPos, int actualX, int actualY){
+    public Cell(int rowPos, int colPos, int actualX, int actualY, Board board){
         this.rowPos = rowPos;
         this.colPos = colPos;
         this.actualX = actualX;
@@ -25,6 +24,7 @@ public class Cell extends Entity{
         flip = false;
 
         this.block = null;
+        this.board = board;
         //addBlock(new Block(TetrisPiece.Type.I, this));
     }
 
@@ -67,6 +67,7 @@ public class Cell extends Entity{
         }
 
         if (isFilled()) {
+            block.setBoard(board);
             block.update();
             if (changeX != block.getChangeX()) {
                 block.setChangeX(changeX);
@@ -143,4 +144,13 @@ public class Cell extends Entity{
         return block;
     }
 
+
+    @Override
+    public String toString() {
+        return "Cell{" +
+                "colPos=" + colPos +
+                ", rowPos=" + rowPos +
+                ", board=" + board +
+                '}';
+    }
 }

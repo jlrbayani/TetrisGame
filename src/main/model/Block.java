@@ -9,11 +9,12 @@ import java.io.IOException;
 public class Block extends Entity{
 
     private int colPos, rowPos;
-    private int move;
     private BufferedImage img;
     private Cell cell;
     private TetrisPiece.Type blockType;
-    private boolean isLocked, flip;
+    private boolean isLocked, flip, move;
+    private Board board;
+    private int moveDownCounter;
 
     public enum Dir {
         DOWN, LEFT, RIGHT
@@ -33,7 +34,9 @@ public class Block extends Entity{
         this.blockType = blockType;
         this.isLocked = true;
         this.flip = false;
+        this.move = false;
         this.velocityX = 2;
+        this.moveDownCounter = 1;
 
         setBlockImg(this.blockType);
     }
@@ -87,7 +90,7 @@ public class Block extends Entity{
         this.actualY = cell.getActualY();
         this.rowPos = c.getRowPos();
         this.colPos = c.getColPos();
-
+        move = false;
     }
 
     public int getColPos() {
@@ -96,6 +99,32 @@ public class Block extends Entity{
 
     public int getRowPos() {
         return rowPos;
+    }
+
+    public void setBoard(Board board) {
+        this.board = board;
+    }
+
+    public void setMove(boolean move) {
+        this.move = move;
+    }
+
+    public void moveBlockDown() {
+        if (cell != null && board != null) {
+            if (cell.getRowPos() < board.getNumRows() - 1) {
+                int newRow = cell.getRowPos() + 1;
+                Cell newCell = board.getCell(getRowPos(), newRow);
+                if (!newCell.isFilled()) {
+                    System.out.println(this.toString());
+                    cell.removeBlock();
+                    newCell.addBlock(this);
+                }
+            }
+        }
+    }
+
+    public void moveBlockRight() {
+
     }
 
     @Override
@@ -115,8 +144,12 @@ public class Block extends Entity{
 //        if (!isLocked) {
 //
 //        }
+
         if (cell != null) {
-//            System.out.println("Cell is not null");
+            if (move && moveDownCounter % 60 == 0) {
+                System.out.println("Passive move down!");
+                moveBlockDown();
+            }
             lockBlock(cell);
         }
 
@@ -133,6 +166,12 @@ public class Block extends Entity{
         if (changeX < 1) {
             flip = false;
         }
+
+        //System.out.println("Move Counter: " + moveDownCounter);
+        moveDownCounter++;
+        if (moveDownCounter > 6000) {
+            moveDownCounter = 1;
+        }
     }
 
     @Override
@@ -145,5 +184,14 @@ public class Block extends Entity{
 
         g2.drawImage(img, (int) (actualX + changeX), actualY, null);
 
+    }
+
+    @Override
+    public String toString() {
+        return "Block{" +
+                "colPos=" + colPos +
+                ", rowPos=" + rowPos +
+                ", cell=" + cell +
+                '}';
     }
 }

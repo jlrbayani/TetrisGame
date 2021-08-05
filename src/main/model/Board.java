@@ -5,7 +5,8 @@ import java.util.ArrayList;
 
 public class Board extends Entity {
 
-    private int numCols, numRows;
+    private int numCols;
+    private int numRows;
     private ArrayList<Cell> boardList;
     private int actualX, actualY;
     private double extrapolate;
@@ -60,7 +61,7 @@ public class Board extends Entity {
 
         for (int i = 0; i < numRows; i++) {
             for (int j = 0; j < numCols; j++) {
-                boardList.add(new Cell(i, j, currentX, currentY));
+                boardList.add(new Cell(i, j, currentX, currentY, this));
                 currentX += Cell.SIZE;
             }
             currentY += Cell.SIZE;
@@ -83,9 +84,9 @@ public class Board extends Entity {
 //                    }
                     if (actualCell != null) {
                         actualCell.addBlock(currentCell.getBlock());
-                    }
-                    if (actualCell != null) {
                         actualCell.getBlock().lockBlock(actualCell);
+                        //System.out.println(currentCell.getBlock());
+                        tp.addToBlockMatrix(currentCell.getBlock());
                     }
                 }
             }
@@ -115,6 +116,15 @@ public class Board extends Entity {
     public int getPieceCol() {
         return pieceCol;
     }
+
+    public int getNumCols() {
+        return numCols;
+    }
+
+    public int getNumRows() {
+        return numRows;
+    }
+
 
     public void clearBoard() {
         for (Cell c: boardList) {
@@ -146,4 +156,11 @@ public class Board extends Entity {
         return boardList.get(rowPos * numCols + colPos);
     }
 
+    @Override
+    public String toString() {
+        return "Board{" +
+                "numCols=" + numCols +
+                ", numRows=" + numRows +
+                '}';
+    }
 }

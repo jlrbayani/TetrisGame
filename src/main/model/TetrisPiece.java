@@ -8,10 +8,11 @@ public class TetrisPiece extends Entity{
     public static final int MATRIX_NUM_ROWS = 4;
     public static final int MATRIX_NUM_COLS = 4;
 
-    private int rowPos, colPos;
+    private int rotation, rowPos, colPos;
     private Type type;
     private ArrayList<Cell> originalMatrix;
     private ArrayList<Cell> actualMatrix;
+    private ArrayList<Block> blocks;
     private boolean inPlay;
 
     public enum Type {
@@ -19,12 +20,14 @@ public class TetrisPiece extends Entity{
     }
 
     public TetrisPiece() {
+        this.rotation = 1;
         this.inPlay = false;
         this.type = chooseRandomType();
         setBlocks();
     }
 
     public TetrisPiece(int numType) {
+        this.rotation = 1;
         this.inPlay = false;
         this.type = setType(numType);
         setBlocks();
@@ -56,6 +59,8 @@ public class TetrisPiece extends Entity{
 
     public void setBlocks() {
         originalMatrix = new ArrayList<>();
+        actualMatrix = new ArrayList<>();
+        blocks = new ArrayList<>();
         ArrayList<Integer> truePos = new ArrayList<>();
 
         switch (this.type) {
@@ -110,6 +115,25 @@ public class TetrisPiece extends Entity{
         return originalMatrix;
     }
 
+    public void setPieceToMove(boolean move) {
+//        for (Cell c: actualMatrix) {
+//            System.out.println("Row: " + c.getRowPos() + " Col: " + c.getColPos());
+//            //c.getBlock().setMove(move);
+//        }
+        for (Block b: blocks) {
+            b.setMove(move);
+        }
+    }
+
+    public void addToActualMatrix(Cell c) {
+        actualMatrix.add(c);
+    }
+
+    public void addToBlockMatrix(Block b) {
+        blocks.add(b);
+    }
+
+
     private ArrayList<Cell> setMatrixBlocks(ArrayList<Integer> truePos) {
         ArrayList<Cell> newMatrix = new ArrayList<>();
         for (int row = 0; row < MATRIX_NUM_ROWS; row++) {
@@ -139,6 +163,12 @@ public class TetrisPiece extends Entity{
             }
         }
 
+        if (rotation == 4) {
+            rotation = 1;
+        } else {
+            rotation += 1;
+        }
+
         return rotatedMatrix;
     }
 
@@ -151,7 +181,19 @@ public class TetrisPiece extends Entity{
             }
         }
 
+        if (rotation == 1) {
+            rotation = 4;
+        } else {
+            rotation -= 1;
+        }
+
         return rotatedMatrix;
+    }
+
+    public void resetRotation() {
+        while (rotation != 1) {
+            rotateRight();
+        }
     }
 
     public void lockPiece(Board b) {
