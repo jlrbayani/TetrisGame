@@ -165,7 +165,10 @@ public class TetrisPiece extends Entity{
     public void moveLeft() {
     }
 
-    public void moveRight() {
+    public void moveRight(Board b) {
+
+
+
     }
 
     public void softDrop() {

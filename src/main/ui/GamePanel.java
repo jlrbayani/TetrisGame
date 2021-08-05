@@ -5,12 +5,9 @@ import main.model.Game;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.awt.event.*;
 
-public class GamePanel extends JPanel implements ActionListener, KeyListener {
+public class GamePanel extends JPanel implements ActionListener {
     final static String GAMEPANEL = "gamePanel";
     private static final Color backgroundCol = new Color(43, 42, 42);
 
@@ -28,7 +25,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         initButtons();
         initPanel();
 
-        this.addKeyListener(this);
+        this.addKeyListener(new Keyboard());
     }
 
     // MODIFIES: this
@@ -167,81 +164,57 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         }
     }
 
-    @Override
-    public void keyTyped(KeyEvent e) { }
+    private class Keyboard extends KeyAdapter {
+        @Override
+        public void keyPressed(KeyEvent e) {
+            boolean[] keysHeld = game.getKeysHeldDown();
+            //System.out.println("KeyPressed: " + e.getKeyCode());
 
-    @Override
-    public void keyPressed(KeyEvent e) {
-        boolean[] keys = game.getKeyPressControls();
-        System.out.println("KeyPressed: " + e.getKeyCode());
+            switch (e.getKeyCode()) {
+                case KeyEvent.VK_LEFT:
+                    keysHeld[0] = true;
+                    return;
+                case KeyEvent.VK_RIGHT:
+                    keysHeld[1] = true;
+                    return;
+                case KeyEvent.VK_DOWN:
+                    keysHeld[2] = true;
+                    return;
+            }
 
-        switch (e.getKeyCode()) {
-            case KeyEvent.VK_ESCAPE:
-                keys[0] = true;
-                break;
-            case KeyEvent.VK_SPACE:
-                keys[1] = true;
-                break;
-            case KeyEvent.VK_LEFT:
-                keys[2] = true;
-                break;
-            case KeyEvent.VK_RIGHT:
-                keys[3] = true;
-                break;
-            case KeyEvent.VK_DOWN:
-                keys[4] = true;
-                break;
-            case KeyEvent.VK_UP:
-                keys[5] = true;
-                break;
-            case KeyEvent.VK_Z:
-                keys[6] = true;
-                break;
-            case KeyEvent.VK_C:
-                keys[7] = true;
-                break;
-        }
-    }
-
-    @Override
-    public void keyReleased(KeyEvent e) {
-        boolean[] keys = game.getKeyPressControls();
-
-        switch (e.getKeyCode()) {
-            case KeyEvent.VK_ESCAPE:
-                keys[0] = false;
-                break;
-            case KeyEvent.VK_SPACE:
-                keys[1] = false;
-                break;
-            case KeyEvent.VK_LEFT:
-                keys[2] = false;
-                break;
-            case KeyEvent.VK_RIGHT:
-                keys[3] = false;
-                break;
-            case KeyEvent.VK_DOWN:
-                keys[4] = false;
-                break;
-            case KeyEvent.VK_UP:
-                keys[5] = false;
-                break;
-            case KeyEvent.VK_Z:
-                keys[6] = false;
-                break;
-            case KeyEvent.VK_C:
-                keys[7] = false;
-                break;
-        }
-    }
-
-
-    private abstract static class PanelWithActList extends JPanel implements ActionListener {
-        public PanelWithActList() {
-            super();
+            game.keyPressed(e.getKeyCode());
         }
 
         @Override
-        public abstract void actionPerformed(ActionEvent e);
+        public void keyReleased(KeyEvent e) {
+            boolean[] keysHeld = game.getKeysHeldDown();
+            boolean[] keysSingle = game.getKeysSinglePress();
+
+            switch (e.getKeyCode()) {
+                case KeyEvent.VK_LEFT:
+                    keysHeld[0] = false;
+                    return;
+                case KeyEvent.VK_RIGHT:
+                    keysHeld[1] = false;
+                    return;
+                case KeyEvent.VK_DOWN:
+                    keysHeld[2] = false;
+                    return;
+            }
+
+            switch (e.getKeyCode()) {
+                case KeyEvent.VK_SPACE:
+                    keysSingle[0] = true;
+                    break;
+                case KeyEvent.VK_UP:
+                    keysSingle[1] = true;
+                    break;
+                case KeyEvent.VK_Z:
+                    keysSingle[2] = true;
+            }
+
+
+        }
     }
+
 }

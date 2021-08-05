@@ -3,7 +3,9 @@ package main.model;
 import main.ui.SoundSystem;
 import main.ui.TetrisFrame;
 
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 
 public class Game implements Runnable{
@@ -27,12 +29,13 @@ public class Game implements Runnable{
     private ScoreMultiplier scoreMultiplier;
     private Score score;
     private int lines;
+    private boolean canSwap;
 
     private TetrisPiece pieceInPlay;
     private TetrisPiece heldPiece;
     private LinkedList<TetrisPiece> nextPieces;
 
-    private boolean[] keyPressControls;
+    private boolean[] keysHeldDown, keysSinglePress;
     private ArrayList<Entity> entityList;
     private Sound blockPlace;
 
@@ -42,13 +45,16 @@ public class Game implements Runnable{
         currentGameSpeed = 1;
         lines = 0;
         isPaused = false;
+        canSwap = true;
 
         entityList = new ArrayList<>();
         heldPiece = null;
         pieceInPlay = null;
         initStartingEntities();
 
-        keyPressControls = new boolean[8];
+        keysHeldDown = new boolean[3];
+        keysSinglePress = new boolean[3];
+        Arrays.fill(keysSinglePress, true);
     }
 
     public boolean isPaused() {
@@ -133,7 +139,7 @@ public class Game implements Runnable{
         nextPieces = new LinkedList<>();
 
         for (int i = 0; i < 3; i++) {
-            nextPieces.add(new TetrisPiece(2));
+            nextPieces.add(new TetrisPiece(1));
         }
 
         holdBoard = new Board(HOLD_COLS, HOLD_ROWS, 50, 100, 0, 0);
@@ -145,7 +151,8 @@ public class Game implements Runnable{
 
     public void getNewPieceInPlay() {
         TetrisPiece newPiece = nextPieces.remove();
-        nextPieces.add(new TetrisPiece(2));
+        nextBoard.clearBoard();
+        nextPieces.add(new TetrisPiece(1));
         pieceInPlay = newPiece;
     }
 
@@ -162,7 +169,10 @@ public class Game implements Runnable{
     }
 
     private void updateNextPieces() {
-        //nextBoard.clearBoard();
+        if (nextPieces.size() < 3) {
+            return;
+        }
+
         for (int i = 0; i < 3; i++) {
             nextBoard.addTetrisPiece(nextPieces.get(i));
             nextBoard.shiftPieceRow(6);
@@ -174,70 +184,84 @@ public class Game implements Runnable{
         return entityList;
     }
 
-    public boolean[] getKeyPressControls() {
-        return keyPressControls;
+    public boolean[] getKeysHeldDown() {
+        return keysHeldDown;
+    }
+
+    public boolean[] getKeysSinglePress() {
+        return keysSinglePress;
     }
 
     public void processInput() {
-
-        if (keyPressControls[0]) {
-            if (!isPaused) {
-                pauseGame();
-                frame.showPausedPanel();
-            } else {
-                resumeGame();
-                frame.showGamePanel();
-            }
-            keyPressControls[0] = false;
-        }
-
         if (isPaused) {
             return;
         }
 
-        if (keyPressControls[1] && pieceInPlay != null) {
-            System.out.println("Fast Drop!");
-            pieceInPlay.fastDrop();
-        }
-
-        if (keyPressControls[2] && pieceInPlay != null) {
+        if (keysHeldDown[0] && pieceInPlay != null) {
             System.out.println("Move Left");
             pieceInPlay.moveLeft();
         }
 
-        if (keyPressControls[3] && pieceInPlay != null) {
+        if (keysHeldDown[1] && pieceInPlay != null) {
             System.out.println("Move Right!");
-            pieceInPlay.moveRight();
+            pieceInPlay.moveRight(gameBoard);
         }
 
-        if (keyPressControls[4] && pieceInPlay != null) {
+        if (keysHeldDown[2] && pieceInPlay != null) {
             System.out.println("Soft Drop!");
             pieceInPlay.softDrop();
         }
+    }
 
-        if (keyPressControls[5] && pieceInPlay != null) {
-            System.out.println("Rotate Right!");
-            pieceInPlay.rotateRight();
+    public void keyPressed(int keyCode) {
+        switch (keyCode) {
+            case KeyEvent.VK_ESCAPE:
+                if (!isPaused) {
+                    pauseGame();
+                    frame.showPausedPanel();
+                }
+                break;
+            case KeyEvent.VK_SPACE:
+                if (keysSinglePress[0]) {
+                    System.out.println("Fast Drop!");
+                    pieceInPlay.fastDrop();
+                    keysSinglePress[0] = false;
+                }
+                break;
+            case KeyEvent.VK_UP:
+                if (keysSinglePress[1]) {
+                    System.out.println("Rotate Right!");
+                    pieceInPlay.rotateRight();
+                    keysSinglePress[1] = false;
+                }
+                break;
+            case KeyEvent.VK_Z:
+                if (keysSinglePress[2]) {
+                    System.out.println("Rotate Left!");
+                    pieceInPlay.rotateLeft();
+                    keysSinglePress[2] = false;
+                }
+                break;
+            case KeyEvent.VK_C:
+                if (canSwap) {
+                    System.out.println("Swapping!");
+                    if (heldPiece == null) {
+                        heldPiece = pieceInPlay;
+                        getNewPieceInPlay();
+                    } else {
+                        TetrisPiece swap = heldPiece;
+                        heldPiece = pieceInPlay;
+                        pieceInPlay = swap;
+                    }
+                    holdBoard.clearBoard();
+                    canSwap = false;
+                }
+                break;
         }
+    }
 
-        if (keyPressControls[6] && pieceInPlay != null) {
-            System.out.println("Rotate Left!");
-            pieceInPlay.rotateLeft();
-        }
-
-        if (keyPressControls[7] && pieceInPlay != null) {
-            System.out.println("Swapping Hold!");
-            nextBoard.clearBoard();
-            if (heldPiece == null) {
-                heldPiece = pieceInPlay;
-                getNewPieceInPlay();
-            } else {
-                TetrisPiece swap = heldPiece;
-                heldPiece = pieceInPlay;
-                pieceInPlay = swap;
-            }
-
-        }
+    public void piecePlaced() {
+        canSwap = true;
     }
 
     // covers the main game loop
@@ -274,10 +298,10 @@ public class Game implements Runnable{
                 frame.setTitle("Tetris | updates: " + updates + " | fps: " + frames);
                 updates = 0;
                 frames = 0;
-                if (pieceInPlay != null) {
-                    gameBoard.clearBoard();
-                    pieceInPlay.rotateRight();
-                }
+//                if (pieceInPlay != null) {
+//                    gameBoard.clearBoard();
+//                    pieceInPlay.rotateRight();
+//                }
 
             }
 
