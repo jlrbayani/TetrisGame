@@ -24,7 +24,7 @@ public class Game implements Runnable{
     private CountDownTimer cdt;
     private SoundSystem ss;
 
-    private double currentGameSpeed;
+    private int currentGameSpeed;
     private Board holdBoard, gameBoard, nextBoard;
     private ScoreMultiplier scoreMultiplier;
     private Score score;
@@ -39,13 +39,17 @@ public class Game implements Runnable{
     private ArrayList<Entity> entityList;
     private Sound blockPlace;
 
+    private int numFall, processInput;
+
     public Game(TetrisFrame frame) {
         this.frame = frame;
         this.ss = frame.getSoundSystem();
-        currentGameSpeed = 1;
+        currentGameSpeed = 30;
         lines = 0;
         isPaused = false;
         canSwap = true;
+        numFall = 1;
+        processInput = 0;
 
         entityList = new ArrayList<>();
         heldPiece = null;
@@ -72,10 +76,13 @@ public class Game implements Runnable{
             resumeGame();
             isPaused = false;
         }
+
        for (Entity e: entityList) {
            e.update();
        }
 
+       processInput();
+//       gameBoard.clearBoard();
        updateHeldPiece();
        updatePieceInPlay();
        updateNextPieces();
@@ -92,6 +99,8 @@ public class Game implements Runnable{
         for (Entity e: entityList) {
             e.pause();
         }
+
+        isPaused = true;
         ss.pauseAllSounds();
     }
 
@@ -131,7 +140,7 @@ public class Game implements Runnable{
 
 
     private synchronized void initStartingEntities() {
-        gameBoard = new Board(GAME_COLS, GAME_ROWS, 310, 50, 0, 3);
+        gameBoard = new Board(GAME_COLS, GAME_ROWS, 310, 50, 0, 0);
         entityList.add(gameBoard);
 
         nextBoard = new Board(NEXT_COLS, NEXT_ROWS, 750, 100, 0, 0);
@@ -139,7 +148,7 @@ public class Game implements Runnable{
         nextPieces = new LinkedList<>();
 
         for (int i = 0; i < 3; i++) {
-            nextPieces.add(new TetrisPiece(1));
+            nextPieces.add(new TetrisPiece());
         }
 
         holdBoard = new Board(HOLD_COLS, HOLD_ROWS, 50, 100, 0, 0);
@@ -152,7 +161,7 @@ public class Game implements Runnable{
     public void getNewPieceInPlay() {
         TetrisPiece newPiece = nextPieces.remove();
         nextBoard.clearBoard();
-        nextPieces.add(new TetrisPiece(1));
+        nextPieces.add(new TetrisPiece());
         pieceInPlay = newPiece;
     }
 
@@ -163,9 +172,28 @@ public class Game implements Runnable{
     }
 
     private void updatePieceInPlay() {
+
         if (pieceInPlay != null) {
+//            for (Cell c: pieceInPlay.getActualMatrix()) {
+//                System.out.println("Row: " + c.getRowPos() + " Col: " + c.getColPos());
+//            }
+            gameBoard.clearCells(pieceInPlay.getActualMatrix());
+            //System.out.println(pieceInPlay.getActualMatrix().size());
             gameBoard.addTetrisPiece(pieceInPlay);
             pieceInPlay.setPieceToMove(true);
+
+            if (!isPaused) {
+                if (numFall % currentGameSpeed == 0) {
+                    gameBoard.shiftPieceRow(1);
+                }
+
+                numFall++;
+
+                if (numFall > 6000) {
+                    numFall = 0;
+                }
+            }
+
         }
     }
 
@@ -198,19 +226,30 @@ public class Game implements Runnable{
             return;
         }
 
+        processInput++;
+        if (processInput % 20 != 0) {
+            return;
+        }
+
         if (keysHeldDown[0] && pieceInPlay != null) {
             System.out.println("Move Left");
-            pieceInPlay.moveLeft();
+            gameBoard.shiftPieceCol(-1);
+            //pieceInPlay.moveLeft();
         }
 
         if (keysHeldDown[1] && pieceInPlay != null) {
             System.out.println("Move Right!");
-            pieceInPlay.moveRight(gameBoard);
+            gameBoard.shiftPieceCol(1);
+            //pieceInPlay.moveRight(gameBoard);
         }
 
         if (keysHeldDown[2] && pieceInPlay != null) {
             System.out.println("Soft Drop!");
-            pieceInPlay.softDrop();
+            gameBoard.shiftPieceRow(1);
+            //pieceInPlay.softDrop();
+        }
+        if (processInput > 6000) {
+            processInput = 1;
         }
     }
 
@@ -260,9 +299,12 @@ public class Game implements Runnable{
                     }
                     holdBoard.clearBoard();
                     canSwap = false;
+                    gameBoard.setPieceRow(0);
                 }
                 break;
         }
+
+        processInput();
     }
 
     public void piecePlaced() {
@@ -285,8 +327,6 @@ public class Game implements Runnable{
             previous = current;
             lag += elapsed;
 
-            processInput();
-
             while (lag >= MS_PER_UPDATE) {
                 update();
                 updates++;
@@ -307,7 +347,6 @@ public class Game implements Runnable{
 //                    gameBoard.clearBoard();
 //                    pieceInPlay.rotateRight();
 //                }
-
             }
 
         }

@@ -43,7 +43,6 @@ public class Board extends Entity {
             for (Entity e : boardList) {
                 e.update();
             }
-
         }
     }
 
@@ -69,13 +68,28 @@ public class Board extends Entity {
         }
     }
 
+    public boolean isValidCell(int row, int col) {
+
+        return true;
+    }
+
+    public void clearCells(ArrayList<Cell> cells) {
+        for (Cell c: cells) {
+            //System.out.println("clearCells: " + c);
+//            System.out.println("clearCells --> row: " + c.getRowPos() + " col: " + c.getColPos() + " index: " + c.getIndex(numCols));
+            boardList.get(c.getIndex(numCols)).removeBlock();
+        }
+    }
+
     public void addTetrisPiece(TetrisPiece tp) {
         ArrayList<Cell> matrix = tp.getOriginalMatrix();
+        tp.clearActualMatrix();
+        //ArrayList<Cell> cellsToAddBlocks = new ArrayList<>();
         for (int row = 0; row < TetrisPiece.MATRIX_NUM_ROWS; row++) {
             for (int col = 0; col < TetrisPiece.MATRIX_NUM_COLS; col++) {
                 Cell currentCell = matrix.get(row * TetrisPiece.MATRIX_NUM_COLS + col);
                 if (currentCell.isFilled()) {
-                    Cell actualCell = boardList.get((row + pieceRow) * numCols + col);
+                    Cell actualCell = boardList.get((row + pieceRow) * numCols + col + pieceCol);
 //                    if (actualCell == null) {
 //                        System.out.println("Actual is null at: " + row * numRows + col);
 //                    } else {
@@ -84,9 +98,12 @@ public class Board extends Entity {
 //                    }
                     if (actualCell != null) {
                         actualCell.addBlock(currentCell.getBlock());
-                        actualCell.getBlock().lockBlock(actualCell);
+                        //actualCell.getBlock().lockBlock(actualCell);
                         //System.out.println(currentCell.getBlock());
-                        tp.addToBlockMatrix(currentCell.getBlock());
+                        //tp.addToBlockMatrix(currentCell.getBlock());
+//                        if (numRows == 21)
+//                            System.out.println("addTetrisPiece: " + actualCell);
+                        tp.addToActualMatrix(actualCell);
                     }
                 }
             }
@@ -102,6 +119,9 @@ public class Board extends Entity {
     }
 
     public void shiftPieceRow(int offset) {
+        if (pieceRow == numRows) {
+            return;
+        }
         this.pieceRow += offset;
     }
 
@@ -110,6 +130,9 @@ public class Board extends Entity {
     }
 
     public void shiftPieceCol(int offset) {
+        if ((pieceCol == 0 && offset < 0) || (pieceCol == numCols && offset > 0)) {
+            return;
+        }
         this.pieceCol += offset;
     }
 

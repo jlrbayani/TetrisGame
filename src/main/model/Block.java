@@ -84,6 +84,12 @@ public class Block extends Entity{
     }
 
     public void lockBlock(Cell c) {
+        if (c == null) {
+            return;
+//            System.out.println("Cell is null: ");
+//            System.out.println("Block row: " + getRowPos());
+//            System.out.println("Block col: " + getColPos());
+        }
         isLocked = true;
         cell = c;
         this.actualX = cell.getActualX();
@@ -114,6 +120,7 @@ public class Block extends Entity{
             if (cell.getRowPos() < board.getNumRows() - 1) {
                 int newRow = cell.getRowPos() + 1;
                 Cell newCell = board.getCell(getRowPos(), newRow);
+                System.out.println("New Cell Index: " + newCell.getIndex(21));
                 if (!newCell.isFilled()) {
                     System.out.println(this.toString());
                     cell.removeBlock();
@@ -145,11 +152,13 @@ public class Block extends Entity{
 //
 //        }
 
+//        if (board.getNumRows() == 21)
+//            System.out.println(this);
         if (cell != null) {
-            if (move && moveDownCounter % 60 == 0) {
-                System.out.println("Passive move down!");
-                moveBlockDown();
-            }
+//            if (move && moveDownCounter % 120 == 0) {
+//                System.out.println("Passive move down!");
+//                moveBlockDown();
+//            }
             lockBlock(cell);
         }
 
@@ -192,6 +201,7 @@ public class Block extends Entity{
                 "colPos=" + colPos +
                 ", rowPos=" + rowPos +
                 ", cell=" + cell +
+                ", isLocked= " + isLocked +
                 '}';
     }
 }

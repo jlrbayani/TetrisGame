@@ -125,6 +125,14 @@ public class TetrisPiece extends Entity{
         }
     }
 
+    public ArrayList<Cell> getActualMatrix() {
+        return actualMatrix;
+    }
+
+    public void clearActualMatrix() {
+        actualMatrix = new ArrayList<>();
+    }
+
     public void addToActualMatrix(Cell c) {
         actualMatrix.add(c);
     }

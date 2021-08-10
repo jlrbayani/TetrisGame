@@ -123,6 +123,7 @@ public class Cell extends Entity{
 
     public void addBlock(Block block) {
         this.block = block;
+        block.lockBlock(this);
     }
 
     public void removeBlock() {
@@ -136,8 +137,8 @@ public class Cell extends Entity{
         this.alpha = alpha;
     }
 
-    public int getIndex(int maxRow) {
-        return rowPos * maxRow + colPos;
+    public int getIndex(int maxCol) {
+        return rowPos * maxCol + colPos;
     }
 
     public Block getBlock() {
