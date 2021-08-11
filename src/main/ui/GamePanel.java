@@ -169,15 +169,24 @@ public class GamePanel extends JPanel implements ActionListener {
         public void keyPressed(KeyEvent e) {
             boolean[] keysHeld = game.getKeysHeldDown();
             //System.out.println("KeyPressed: " + e.getKeyCode());
-
+            int[] keysCall = game.getKeysNumCall();
             switch (e.getKeyCode()) {
                 case KeyEvent.VK_LEFT:
+                    if (!keysHeld[0]) {
+                        keysCall[0]++;
+                    }
                     keysHeld[0] = true;
                     return;
                 case KeyEvent.VK_RIGHT:
+                    if (!keysHeld[1]) {
+                        keysCall[1]++;
+                    }
                     keysHeld[1] = true;
                     return;
                 case KeyEvent.VK_DOWN:
+                    if (!keysHeld[2]) {
+                        keysCall[2]++;
+                    }
                     keysHeld[2] = true;
                     return;
             }

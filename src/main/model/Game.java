@@ -35,7 +35,8 @@ public class Game implements Runnable{
     private TetrisPiece heldPiece;
     private LinkedList<TetrisPiece> nextPieces;
 
-    private boolean[] keysHeldDown, keysSinglePress;
+    private boolean[] keysHeldDown, keysSinglePress, keys;
+    private int[] keysNumCall;
     private ArrayList<Entity> entityList;
     private Sound blockPlace;
 
@@ -58,6 +59,8 @@ public class Game implements Runnable{
 
         keysHeldDown = new boolean[3];
         keysSinglePress = new boolean[3];
+        keys = new boolean[6];
+        keysNumCall = new int[3];
         Arrays.fill(keysSinglePress, true);
     }
 
@@ -82,7 +85,6 @@ public class Game implements Runnable{
        }
 
        processInput();
-//       gameBoard.clearBoard();
        updateHeldPiece();
        updatePieceInPlay();
        updateNextPieces();
@@ -177,8 +179,8 @@ public class Game implements Runnable{
 //            for (Cell c: pieceInPlay.getActualMatrix()) {
 //                System.out.println("Row: " + c.getRowPos() + " Col: " + c.getColPos());
 //            }
-            gameBoard.clearCells(pieceInPlay.getActualMatrix());
             //System.out.println(pieceInPlay.getActualMatrix().size());
+            gameBoard.clearCells(pieceInPlay.getActualMatrix());
             gameBoard.addTetrisPiece(pieceInPlay);
             pieceInPlay.setPieceToMove(true);
 
@@ -189,7 +191,7 @@ public class Game implements Runnable{
 
                 numFall++;
 
-                if (numFall > 6000) {
+                if (numFall > 12000) {
                     numFall = 0;
                 }
             }
@@ -221,35 +223,64 @@ public class Game implements Runnable{
         return keysSinglePress;
     }
 
+    public int[] getKeysNumCall() {
+        return keysNumCall;
+    }
+
     public void processInput() {
         if (isPaused) {
             return;
         }
 
+        while (keysNumCall[0] > 0) {
+            gameBoard.shiftPieceCol(-1);
+            keysNumCall[0]--;
+        }
+        while (keysNumCall[1] > 0) {
+            gameBoard.shiftPieceCol(1);
+            keysNumCall[1]--;
+        }
+        while (keysNumCall[2] > 0) {
+            gameBoard.shiftPieceRow(1);
+            keysNumCall[2]--;
+        }
+
         processInput++;
-        if (processInput % 20 != 0) {
+        if (processInput % currentGameSpeed != 0) {
             return;
         }
 
-        if (keysHeldDown[0] && pieceInPlay != null) {
-            System.out.println("Move Left");
-            gameBoard.shiftPieceCol(-1);
-            //pieceInPlay.moveLeft();
+        if (keysHeldDown[0]) {
+            keysNumCall[0]++;
         }
 
-        if (keysHeldDown[1] && pieceInPlay != null) {
-            System.out.println("Move Right!");
-            gameBoard.shiftPieceCol(1);
-            //pieceInPlay.moveRight(gameBoard);
+        if (keysHeldDown[1]) {
+            keysNumCall[1]++;
         }
 
-        if (keysHeldDown[2] && pieceInPlay != null) {
-            System.out.println("Soft Drop!");
-            gameBoard.shiftPieceRow(1);
-            //pieceInPlay.softDrop();
+        if (keysHeldDown[2]) {
+            keysNumCall[2]++;
         }
-        if (processInput > 6000) {
-            processInput = 1;
+
+//        if (keysHeldDown[0] && pieceInPlay != null) {
+//            System.out.println("Move Left");
+//            gameBoard.shiftPieceCol(-1);
+//            //pieceInPlay.moveLeft();
+//        }
+//
+//        if (keysHeldDown[1] && pieceInPlay != null) {
+//            System.out.println("Move Right!");
+//            gameBoard.shiftPieceCol(1);
+//            //pieceInPlay.moveRight(gameBoard);
+//        }
+//
+//        if (keysHeldDown[2] && pieceInPlay != null) {
+//            System.out.println("Soft Drop!");
+//            gameBoard.shiftPieceRow(1);
+//            //pieceInPlay.softDrop();
+//        }
+        if (processInput > 12000) {
+            processInput = 0;
         }
     }
 
@@ -264,7 +295,10 @@ public class Game implements Runnable{
             case KeyEvent.VK_SPACE:
                 if (keysSinglePress[0]) {
                     System.out.println("Fast Drop!");
+                    //pieceInPlay.lockPiece(gameBoard);
+                    gameBoard.setPieceRow(0);
                     pieceInPlay.fastDrop();
+                    pieceInPlay = null;
                     keysSinglePress[0] = false;
                 }
                 break;
@@ -285,6 +319,7 @@ public class Game implements Runnable{
             case KeyEvent.VK_C:
                 if (canSwap) {
                     System.out.println("Swapping!");
+                    gameBoard.clearCells(pieceInPlay.getActualMatrix());
                     pieceInPlay.resetRotation();
                     if (heldPiece == null) {
                         heldPiece = pieceInPlay;

@@ -96,6 +96,7 @@ public class Board extends Entity {
 //                        System.out.println("Current Matrix Cell Index: " + currentCell.getIndex(TetrisPiece.MATRIX_NUM_ROWS));
 //                        System.out.println("Actual Cell: " + actualCell.getIndex(numCols));
 //                    }
+
                     if (actualCell != null) {
                         actualCell.addBlock(currentCell.getBlock());
                         //actualCell.getBlock().lockBlock(actualCell);

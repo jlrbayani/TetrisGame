@@ -8,7 +8,7 @@ public class TetrisPiece extends Entity{
     public static final int MATRIX_NUM_ROWS = 4;
     public static final int MATRIX_NUM_COLS = 4;
 
-    private int rotation, rowPos, colPos;
+    private int rotation;
     private Type type;
     private ArrayList<Cell> originalMatrix;
     private ArrayList<Cell> actualMatrix;
@@ -153,7 +153,9 @@ public class TetrisPiece extends Entity{
                     Cell c = newMatrix.get(currentMatrixIndex);
 //                    System.out.println("TruePos: " + currentMatrixIndex);
 //                    System.out.println("Matrix: " + (c.getRowPos() * MATRIX_NUM_ROWS + c.getColPos()));
-                    c.addBlock(new Block(type, c));
+                    Block b = new Block(type, c);
+                    blocks.add(b);
+                    c.addBlock(b);
                     c.getBlock().lockBlock(c);
                 }
             }
@@ -204,8 +206,10 @@ public class TetrisPiece extends Entity{
         }
     }
 
-    public void lockPiece(Board b) {
-
+    public void lockPiece(Board board) {
+        for(Block b: blocks) {
+            b.lockBlock(board.getCell(b.getRowPos(), b.getColPos()));
+        }
     }
 
     public void fastDrop() {
