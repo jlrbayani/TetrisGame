@@ -162,19 +162,19 @@ public class Block extends Entity{
             lockBlock(cell);
         }
 
-        if (!flip) {
-            changeX += (velocityX * extrapolate);
-        }
-        if (flip) {
-            changeX -= (velocityX * extrapolate);
-        }
+//        if (!flip) {
+//            changeX += (velocityX * extrapolate);
+//        }
+//        if (flip) {
+//            changeX -= (velocityX * extrapolate);
+//        }
 
-        if (changeX > 200) {
-            flip = true;
-        }
-        if (changeX < 1) {
-            flip = false;
-        }
+//        if (changeX > 200) {
+//            flip = true;
+//        }
+//        if (changeX < 1) {
+//            flip = false;
+//        }
 
         //System.out.println("Move Counter: " + moveDownCounter);
         moveDownCounter++;

@@ -9,7 +9,7 @@ public class Cell extends Entity{
     private int colPos, rowPos;
     private Block block;
     private float alpha;
-    private boolean isGhost, flip;
+    private boolean isGhost, flip, canMove;
     private Board board;
 
     public Cell(int rowPos, int colPos, int actualX, int actualY, Board board){
@@ -22,6 +22,7 @@ public class Cell extends Entity{
         velocityX = 2;
         isGhost = false;
         flip = false;
+        canMove = false;
 
         this.block = null;
         this.board = board;
@@ -52,18 +53,20 @@ public class Cell extends Entity{
 
     @Override
     public void update() {
-        if (!flip) {
-            changeX += (velocityX * extrapolate);
-        }
-        if (flip) {
-            changeX -= (velocityX * extrapolate);
-        }
+        if (canMove) {
+            if (!flip) {
+                changeX += (velocityX * extrapolate);
+            }
+            if (flip) {
+                changeX -= (velocityX * extrapolate);
+            }
 
-        if (changeX > 200) {
-            flip = true;
-        }
-        if (changeX < 1) {
-            flip = false;
+            if (changeX > 100) {
+                flip = true;
+            }
+            if (changeX < 1) {
+                flip = false;
+            }
         }
 
         if (isFilled()) {
@@ -145,6 +148,9 @@ public class Cell extends Entity{
         return block;
     }
 
+    public void setCanMove(boolean canMove) {
+        this.canMove = canMove;
+    }
 
     @Override
     public String toString() {

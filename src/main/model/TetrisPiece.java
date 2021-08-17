@@ -5,10 +5,12 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class TetrisPiece extends Entity{
-    public static final int MATRIX_NUM_ROWS = 4;
-    public static final int MATRIX_NUM_COLS = 4;
 
+    private int matrixNumRows;
+    private int matrixNumCols;
     private int rotation;
+    private int topOffset, bottomOffset, leftOffset, rightOffset;
+    private Dimension dimensions;
     private Type type;
     private ArrayList<Cell> originalMatrix;
     private ArrayList<Cell> actualMatrix;
@@ -30,6 +32,13 @@ public class TetrisPiece extends Entity{
         this.rotation = 1;
         this.inPlay = false;
         this.type = setType(numType);
+        setBlocks();
+    }
+
+    public TetrisPiece(Type type) {
+        this.rotation = 1;
+        this.inPlay = false;
+        this.type = type;
         setBlocks();
     }
 
@@ -62,53 +71,72 @@ public class TetrisPiece extends Entity{
         actualMatrix = new ArrayList<>();
         blocks = new ArrayList<>();
         ArrayList<Integer> truePos = new ArrayList<>();
+        topOffset = 0;
+        bottomOffset = 0;
+        leftOffset = 0;
+        rightOffset = 0;
 
         switch (this.type) {
             case I:
+                matrixNumRows = 4;
+                matrixNumCols = 4;
                 truePos.add(1);
                 truePos.add(5);
                 truePos.add(9);
                 truePos.add(13);
                 break;
             case J:
+                matrixNumRows = 3;
+                matrixNumCols = 3;
                 truePos.add(1);
-                truePos.add(5);
-                truePos.add(8);
-                truePos.add(9);
+                truePos.add(4);
+                truePos.add(6);
+                truePos.add(7);
                 break;
             case L:
+                matrixNumRows = 3;
+                matrixNumCols = 3;
                 truePos.add(1);
-                truePos.add(5);
-                truePos.add(9);
-                truePos.add(10);
+                truePos.add(4);
+                truePos.add(7);
+                truePos.add(8);
                 break;
             case O:
-                truePos.add(5);
-                truePos.add(6);
-                truePos.add(9);
-                truePos.add(10);
-                break;
-            case S:
+                matrixNumRows = 2;
+                matrixNumCols = 2;
+                truePos.add(0);
                 truePos.add(1);
                 truePos.add(2);
+                truePos.add(3);
+                break;
+            case S:
+                matrixNumRows = 3;
+                matrixNumCols = 3;
+                truePos.add(1);
+                truePos.add(2);
+                truePos.add(3);
+                truePos.add(4);
+                break;
+            case T:
+                matrixNumRows = 3;
+                matrixNumCols = 3;
+                truePos.add(1);
+                truePos.add(3);
                 truePos.add(4);
                 truePos.add(5);
                 break;
-            case T:
+            case Z:
+                matrixNumRows = 3;
+                matrixNumCols = 3;
+                truePos.add(0);
                 truePos.add(1);
                 truePos.add(4);
                 truePos.add(5);
-                truePos.add(6);
-                break;
-            case Z:
-                truePos.add(4);
-                truePos.add(5);
-                truePos.add(9);
-                truePos.add(10);
                 break;
         }
 
         originalMatrix = setMatrixBlocks(truePos);
+        dimensions = calculateDimensions();
     }
 
     public ArrayList<Cell> getOriginalMatrix() {
@@ -144,9 +172,9 @@ public class TetrisPiece extends Entity{
 
     private ArrayList<Cell> setMatrixBlocks(ArrayList<Integer> truePos) {
         ArrayList<Cell> newMatrix = new ArrayList<>();
-        for (int row = 0; row < MATRIX_NUM_ROWS; row++) {
-            for (int col = 0; col < MATRIX_NUM_COLS; col++) {
-                int currentMatrixIndex = row * MATRIX_NUM_ROWS + col;
+        for (int row = 0; row < matrixNumRows; row++) {
+            for (int col = 0; col < matrixNumCols; col++) {
+                int currentMatrixIndex = row * matrixNumCols + col;
                 newMatrix.add(new Cell(row, col));
 
                 if (truePos.contains(currentMatrixIndex)) {
@@ -166,10 +194,10 @@ public class TetrisPiece extends Entity{
 
     public ArrayList<Cell> rotateRight(ArrayList<Cell> originalMatrix) {
         ArrayList<Cell> rotatedMatrix = new ArrayList<>();
-        int rowIndex = MATRIX_NUM_ROWS - 1;
-        for (int col = 0; col < MATRIX_NUM_COLS; col++) {
+        int rowIndex = matrixNumRows - 1;
+        for (int col = 0; col < matrixNumCols; col++) {
             for (int row = rowIndex; row >= 0; row--) {
-                rotatedMatrix.add(originalMatrix.get(row * 4 + col));
+                rotatedMatrix.add(originalMatrix.get(row * matrixNumCols + col));
             }
         }
 
@@ -184,10 +212,10 @@ public class TetrisPiece extends Entity{
 
     public ArrayList<Cell> rotateLeft(ArrayList<Cell> originalMatrix) {
         ArrayList<Cell> rotatedMatrix = new ArrayList<>();
-        int colIndex = MATRIX_NUM_COLS - 1;
+        int colIndex = matrixNumCols - 1;
         for (int col = colIndex; col >= 0; col--) {
-            for (int row = 0; row < MATRIX_NUM_ROWS; row++) {
-                rotatedMatrix.add(originalMatrix.get(row * 4 + col));
+            for (int row = 0; row < matrixNumRows; row++) {
+                rotatedMatrix.add(originalMatrix.get(row * matrixNumCols + col));
             }
         }
 
@@ -200,10 +228,155 @@ public class TetrisPiece extends Entity{
         return rotatedMatrix;
     }
 
+    // MODIFIES: none
+    // EFFECTS: Calculates the actual dimensions of the TetrisPiece rather than the matrix width and height to eventually help with offsetting its position on the board
+    public Dimension calculateDimensions() {
+
+        return new Dimension(calculateWidth(), calculateHeight());
+    }
+
+    public int calculateWidth() {
+        int width = 0;
+        int blocksFound = 0;
+        int startingWidth = 0;
+        int endingWidth = 1;
+        for (int col = 0; col < matrixNumCols; col++) {
+            for (int row = 0; row < matrixNumRows; row++) {
+                Cell currentCell = originalMatrix.get(row * matrixNumCols + col);
+//                System.out.println("Row: " + currentCell.getRowPos());
+//                System.out.println("Col: " + currentCell.getColPos());
+                if (currentCell.isFilled()) {
+                    if(blocksFound == 0) {
+                        startingWidth = col;
+//                        System.out.println("Starting Width Index: " + startingWidth);
+                    }
+                    if(blocksFound == 3) {
+                        endingWidth += col;
+//                        System.out.println("Ending Width Index: " + endingWidth);
+                    }
+                    blocksFound++;
+                }
+
+                if (blocksFound == 4) {
+                    break;
+                }
+            }
+            if (blocksFound == 4) {
+                break;
+            }
+        }
+        if (startingWidth > 0) {
+            leftOffset = 0;
+            leftOffset += startingWidth;
+        }
+        if (endingWidth < matrixNumCols) {
+            rightOffset = 0;
+            rightOffset += matrixNumCols - endingWidth;
+        }
+//        System.out.println("leftOffset: " + leftOffset);
+//        System.out.println("rightOffset: " + rightOffset);
+        width = endingWidth - startingWidth;
+
+        return width;
+    }
+
+    public int calculateHeight() {
+        int height = 0;
+        int blocksFound = 0;
+        int startingHeight = 0;
+        int endingHeight = 1;
+        for (int row = 0; row < matrixNumRows; row++) {
+            for (int col = 0; col < matrixNumCols; col++) {
+                Cell currentCell = originalMatrix.get(row * matrixNumCols + col);
+                if (currentCell.isFilled()) {
+                    if(blocksFound == 0) {
+                        startingHeight = row;
+//                        System.out.println("Starting Height: " + startingHeight);
+                    }
+                    if(blocksFound == 3) {
+                        endingHeight += row;
+//                        System.out.println("Ending Height: " + endingHeight);
+                    }
+
+                    blocksFound++;
+                }
+
+                if (blocksFound == 4) {
+                    break;
+                }
+            }
+            if (blocksFound == 4) {
+                break;
+            }
+        }
+
+        if (startingHeight > 0) {
+            topOffset = 0;
+            topOffset += startingHeight;
+        }
+
+        if (endingHeight < matrixNumRows - 1) {
+            bottomOffset = 0;
+//            System.out.println("matrixNumRows - endingHeight: " + (matrixNumRows - endingHeight));
+            bottomOffset += matrixNumRows - endingHeight;
+        }
+//        System.out.println("BottomOffset: " + bottomOffset);
+        height = endingHeight - startingHeight;
+
+        return height;
+    }
+
+    public void printOffsets() {
+        System.out.println("leftOffset  : " + leftOffset);
+        System.out.println("rightOffset : " + rightOffset);
+        System.out.println("topOffset   : " + topOffset);
+        System.out.println("BottomOffset: " + bottomOffset);
+    }
+
+    private void resetOffsets() {
+        topOffset = 0;
+        bottomOffset = 0;
+        leftOffset = 0;
+        rightOffset = 0;
+    }
+
+    public void printOriginalMatrix() {
+        System.out.println("Original Matrix: ");
+        int num = 0;
+        for (Cell c: originalMatrix) {
+            System.out.format("%3d   ", c.getRowPos() * matrixNumCols + c.getColPos());
+            num++;
+            if (num % matrixNumCols == 0) {
+                System.out.println("");
+            }
+        }
+    }
+
+
     public void resetRotation() {
         while (rotation != 1) {
             rotateRight();
         }
+    }
+
+    public void setRotation(int rotation) {
+        while (this.rotation != rotation) {
+            rotateRight();
+        }
+    }
+
+    public TetrisPiece copyPiece() {
+        TetrisPiece tpCopy = new TetrisPiece(type);
+        tpCopy.setRotation(rotation);
+        for (Cell c: actualMatrix) {
+            tpCopy.addToActualMatrix(new Cell(c.getRowPos(), c.getColPos()));
+        }
+
+        return tpCopy;
+    }
+
+    public int getRotation() {
+        return rotation;
     }
 
     public void lockPiece(Board board) {
@@ -230,10 +403,14 @@ public class TetrisPiece extends Entity{
 
     public void rotateRight() {
         originalMatrix = rotateRight(originalMatrix);
+        resetOffsets();
+        dimensions = calculateDimensions();
     }
 
     public void rotateLeft() {
         originalMatrix = rotateLeft(originalMatrix);
+        resetOffsets();
+        dimensions = calculateDimensions();
     }
 
     public void setInPlay(boolean inPlay) {
@@ -242,6 +419,38 @@ public class TetrisPiece extends Entity{
 
     public boolean getInPlay() {
         return inPlay;
+    }
+
+    public int getMatrixNumRows() {
+        return matrixNumRows;
+    }
+
+    public int getMatrixNumCols() {
+        return matrixNumCols;
+    }
+
+    public Dimension getDimensions() {
+        return dimensions;
+    }
+
+    public int getTopOffset() {
+        return topOffset;
+    }
+
+    public int getBottomOffset() {
+        return bottomOffset;
+    }
+
+    public int getLeftOffset() {
+        return leftOffset;
+    }
+
+    public int getRightOffset() {
+        return rightOffset;
+    }
+
+    public Type getType() {
+        return type;
     }
 
     @Override
