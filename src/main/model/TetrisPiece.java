@@ -71,10 +71,7 @@ public class TetrisPiece extends Entity{
         actualMatrix = new ArrayList<>();
         blocks = new ArrayList<>();
         ArrayList<Integer> truePos = new ArrayList<>();
-        topOffset = 0;
-        bottomOffset = 0;
-        leftOffset = 0;
-        rightOffset = 0;
+        resetOffsets();
 
         switch (this.type) {
             case I:

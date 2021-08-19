@@ -101,7 +101,8 @@ public class Sound implements Runnable{
 
     public void resetSound() {
         clip.stop();
-        clip.drain();
+        clip.setMicrosecondPosition(0);
+//        clip.drain();
     }
 
     @Override

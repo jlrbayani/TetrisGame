@@ -94,6 +94,12 @@ public class SoundSystem {
         }
     }
 
+    public void resetSound(Sound s) {
+        if (soundList.contains(s)) {
+            s.resetSound();
+        }
+    }
+
     // MODIFIES: this
     // EFFECTS: A method which ensures that the pool and any of its remaining threads is shutdown properly. This would be called at the closing of the App.
     public void closeSoundSystem() {

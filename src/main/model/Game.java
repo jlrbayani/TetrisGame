@@ -35,7 +35,7 @@ public class Game implements Runnable{
     private TetrisPiece heldPiece;
     private LinkedList<TetrisPiece> nextPieces;
 
-    private boolean[] keysHeldDown, keysSinglePress, keys;
+    private boolean[] keysHeldDown, keysSinglePress;
     private int[] keysNumCall;
     private ArrayList<Entity> entityList;
     private Sound blockPlace, theme;
@@ -60,7 +60,6 @@ public class Game implements Runnable{
 
         keysHeldDown = new boolean[3];
         keysSinglePress = new boolean[3];
-        keys = new boolean[6];
         keysNumCall = new int[3];
         Arrays.fill(keysSinglePress, true);
 
@@ -70,6 +69,9 @@ public class Game implements Runnable{
         theme = new Sound("resources/sounds/TetrisTheme.wav", "theme", ss.getCurrentVolume());
         theme.setKeepLooping(true);
         ss.addToSounds(theme);
+
+        blockPlace = new Sound("resources/sounds/BlockPlacementSound.wav", "blockPlaced", ss.getCurrentVolume());
+        ss.addToSounds(blockPlace);
     }
 
 
@@ -127,9 +129,6 @@ public class Game implements Runnable{
     }
 
     public synchronized void startCountDown() {
-        blockPlace = new Sound("resources/sounds/BlockPlacementSound.wav", "blockPlaced", ss.getCurrentVolume());
-        ss.addToSounds(blockPlace);
-        ss.playSound(blockPlace.getSoundName());
         if (!entityList.contains(cdt)) {
             cdt = new CountDownTimer(440, TetrisFrame.HEIGHT / 5);
             entityList.add(cdt);
@@ -368,6 +367,8 @@ public class Game implements Runnable{
 
     public void piecePlaced() {
         canSwap = true;
+//        ss.playSound(blockPlace.getSoundName());
+//        ss.resetSound(blockPlace);
     }
 
     private void lockPieceInPlay() {
