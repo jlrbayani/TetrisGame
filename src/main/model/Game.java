@@ -38,7 +38,7 @@ public class Game implements Runnable{
     private boolean[] keysHeldDown, keysSinglePress, keys;
     private int[] keysNumCall;
     private ArrayList<Entity> entityList;
-    private Sound blockPlace;
+    private Sound blockPlace, theme;
 
     private int numFall, processInput;
 
@@ -56,13 +56,22 @@ public class Game implements Runnable{
         heldPiece = null;
         pieceInPlay = null;
         initStartingEntities();
+        initSounds();
 
         keysHeldDown = new boolean[3];
         keysSinglePress = new boolean[3];
         keys = new boolean[6];
         keysNumCall = new int[3];
         Arrays.fill(keysSinglePress, true);
+
     }
+
+    private void initSounds() {
+        theme = new Sound("resources/sounds/TetrisTheme.wav", "theme", ss.getCurrentVolume());
+        theme.setKeepLooping(true);
+        ss.addToSounds(theme);
+    }
+
 
     public boolean isPaused() {
         return isPaused;
@@ -101,7 +110,7 @@ public class Game implements Runnable{
         for (Entity e: entityList) {
             e.pause();
         }
-
+        System.out.println("Game Paused!");
         isPaused = true;
         ss.pauseAllSounds();
     }
@@ -113,6 +122,7 @@ public class Game implements Runnable{
         System.out.println("Resuming game!");
         ss.resetSounds();
         ss.resumeFromPause();
+//        ss.playSound(theme.getSoundName());
         frame.getCurrentPanel().requestFocusInWindow();
     }
 
@@ -183,7 +193,6 @@ public class Game implements Runnable{
             //System.out.println(pieceInPlay.getActualMatrix().size());
             gameBoard.clearCells(pieceInPlay.getActualMatrix());
             gameBoard.addTetrisPiece(pieceInPlay);
-            pieceInPlay.setPieceToMove(true);
 
             if (!isPaused) {
                 if (numFall % currentGameSpeed == 0) {
@@ -238,17 +247,17 @@ public class Game implements Runnable{
         }
 
         while (keysNumCall[0] > 0) {
-            System.out.println("Move Left!");
+//            System.out.println("Move Left!");
             gameBoard.shiftPieceCol(-1, pieceInPlay);
             keysNumCall[0]--;
         }
         while (keysNumCall[1] > 0) {
-            System.out.println("Move Right!");
+//            System.out.println("Move Right!");
             gameBoard.shiftPieceCol(1, pieceInPlay);
             keysNumCall[1]--;
         }
         while (keysNumCall[2] > 0) {
-            System.out.println("Soft Drop!");
+//            System.out.println("Soft Drop!");
             if (!gameBoard.shiftPieceRow(1, pieceInPlay)) {
                 lockPieceInPlay();
             }
@@ -313,9 +322,11 @@ public class Game implements Runnable{
                 break;
             case KeyEvent.VK_UP:
                 if (keysSinglePress[1] && pieceInPlay != null) {
-                    System.out.println("Rotate Right!");
+//                    System.out.println("Rotate Right!");
                     //pieceInPlay.rotateRight();
-                    gameBoard.rotatePiece(pieceInPlay,true);
+                    gameBoard.wallKickRotationRight(pieceInPlay);
+                 //   gameBoard.findOptimalCells(pieceInPlay);
+                    //gameBoard.rotatePiece(pieceInPlay,true);
 //                    pieceInPlay.printOffsets();
                     keysSinglePress[1] = false;
                 }
@@ -361,9 +372,10 @@ public class Game implements Runnable{
 
     private void lockPieceInPlay() {
         gameBoard.setPieceRow(0);
+        gameBoard.checkLineClear();
         piecePlaced();
         pieceInPlay = null;
-        System.out.println("Piece In Play Locked!");
+//        System.out.println("Piece In Play Locked!");
     }
 
     // covers the main game loop

@@ -413,6 +413,12 @@ public class TetrisPiece extends Entity{
         dimensions = calculateDimensions();
     }
 
+    public void setActualMatrix(ArrayList<Cell> cells) {
+        for (Cell c: cells) {
+            addToActualMatrix(c);
+        }
+    }
+
     public void setInPlay(boolean inPlay) {
         this.inPlay = inPlay;
     }
