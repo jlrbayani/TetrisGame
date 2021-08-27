@@ -20,12 +20,13 @@ public class Board extends Entity {
                                                     {-1, 0}, {-1, 1}, {0, -2}, {-1, 2}    // 4 --> 1
                                                     };
 
-    private static final int[][] getWallKickRightI = {
+    private static final int[][] wallKickRightI = {
                                                     {-2, 0}, {1, 0}, {-2, 1}, {1, -2},   // 1 --> 2
                                                     {-1, 0}, {2, 0}, {-1, -2}, {2, 1},   // 2 --> 3
                                                     {2, 0}, {-1, 0}, {2, -1}, {-1, 2},   // 3 --> 4
                                                     {1, 0}, {-2, 0}, {1, 2}, {-2, -1}    // 4 --> 1
                                                     };
+
 
     public Board(int numCols, int numRows, int actualX, int actualY, int pieceRow, int pieceCol) {
         this.numCols = numCols;
@@ -57,7 +58,7 @@ public class Board extends Entity {
     public void update() {
         if (!isPaused) {
             for (Entity e : boardList) {
-                e.update();
+               e.update();
             }
         }
     }
@@ -109,7 +110,8 @@ public class Board extends Entity {
                 Cell currentCell = boardList.get(currentRow * numCols + col);
                 Cell cellBelow = boardList.get((currentRow + 1) * numCols + col);
                 if (currentCell.isFilled()) {
-                    cellBelow.addBlock(currentCell.getBlock());
+                    Block b = new Block(currentCell.getBlock().getBlockType(), currentCell);
+                    cellBelow.addBlock(b);
                     currentCell.removeBlock();
                 }
             }
@@ -162,6 +164,320 @@ public class Board extends Entity {
                 }
             }
         }
+    }
+
+    public boolean initPieceToBoard(TetrisPiece tp) {
+        ArrayList<Cell> matrix = tp.getOriginalMatrix();
+        int matrixNumRows = tp.getMatrixNumRows();
+        int matrixNumCols = tp.getMatrixNumCols();
+        tp.clearActualMatrix();
+        ArrayList<Cell> moveTo = new ArrayList<>();
+
+        for (int row = 0; row < matrixNumRows; row++) {
+            for (int col = 0; col < matrixNumCols; col++) {
+                Cell currentCell = matrix.get(row * matrixNumCols + col);
+                if (currentCell.isFilled()) {
+                    int index = (row + pieceRow) * numCols + col + pieceCol;
+                    Cell actualCell = boardList.get(index);
+                    if (actualCell != null) {
+                        actualCell.addBlock(currentCell.getBlock());
+                        tp.addToActualMatrix(actualCell);
+                    }
+                }
+            }
+        }
+
+        return tp.getActualMatrix().size() == 4;
+    }
+
+
+    public synchronized void updatePieceInBoard(TetrisPiece tp) {
+        for (Cell c: tp.getActualMatrix()) {
+            Block b = c.getBlock();
+            boardList.get(c.getIndex(numCols)).addBlock(b);
+        }
+    }
+
+    public synchronized void rotatePieceInPlay(TetrisPiece tp, boolean rotateRight) {
+        if (tp.getType() == TetrisPiece.Type.O) {
+            return;
+        }
+//        System.out.println("Before rotate: ");
+//        for (Cell c: tp.getActualMatrix()) {
+//            System.out.println(c);
+//        }
+//        System.out.println("");
+//        System.out.println("Original Matrix: ");
+//        tp.printOriginalMatrix();
+//        System.out.println("");
+
+//        System.out.println("Actual Matrix: ");
+//        tp.printActualMatrix();
+        TetrisPiece tester = tp.copyPiece();
+//        System.out.println("Copy Rotation Before: " + tester.getRotation());
+        if (rotateRight) {
+            tester.rotateRight();
+        } else {
+            tester.rotateLeft();
+        }
+//        System.out.println("Rotated Original Matrix: ");
+//        tester.printOriginalMatrix();
+//        System.out.println("");
+
+//        System.out.println("Copy Rotation After: " + tester.getRotation());
+        tester.setActualMatrix(this, tp.getOriginalMatrix(), rotateRight);
+//        System.out.println("Actual Matrix: ");
+//        tester.printActualMatrix();
+        ArrayList<Cell> moveTo = tester.getActualMatrix();
+        if (tp.getType() == TetrisPiece.Type.I && checkRowOverflow(tp, moveTo)) {
+            //System.out.println("Kicking from wall!");
+            moveTo = applyEdgeKickI(tp, moveTo);
+        }
+
+        if (checkPieceMove(tp, moveTo) && !checkRowOverflow(tp, moveTo)) {
+//            tp.rotateRight();
+            tp.setRotation(tester.getRotation());
+            addPieceToBoard(tp, moveTo);
+        } else {
+            for (int numTries = 0; numTries < 4; numTries++) {
+                moveTo = applyWallKick(tp, tester, numTries, rotateRight);
+                if (checkPieceMove(tp, moveTo) && !checkRowOverflow(tp, moveTo)) {
+                    tp.setRotation(tester.getRotation());
+                    addPieceToBoard(tp, moveTo);
+                    break;
+                }
+            }
+        }
+//        System.out.println("");
+//
+//        System.out.println("After rotate: ");
+//        for (Cell c: tp.getActualMatrix()) {
+//            System.out.println(c);
+//        }
+//        System.out.println("");
+//        System.out.println(tp.getRotation());
+
+    }
+
+    public ArrayList<Cell> applyEdgeKickI(TetrisPiece tp , ArrayList<Cell> moveTo) {
+        ArrayList<Cell> actualMatrix = tp.getActualMatrix();
+        int index = 0;
+        while (index < moveTo.size()) {
+            int diff;
+            try {
+                Cell currentCell = actualMatrix.get(index);
+                Cell moveCell = moveTo.get(index);
+                if (moveCell == null) {
+                    return null;
+                }
+                diff = currentCell.getColPos() - moveCell.getColPos();
+            } catch (NullPointerException e) {
+                e.printStackTrace();
+                return null;
+            }
+            System.out.println("diff: " + diff);
+//            if (diff > 4 || diff < -4) {
+//                System.out.println("");
+//                System.out.println("pushed!");
+//                Cell currentCell = moveTo.get(index);
+//                moveTo.remove(0);
+//                diff = numCols - Math.abs(diff);
+//                System.out.println( boardList.get(currentCell.getIndex(numCols) + diff));
+//                moveTo.add(0, boardList.get(currentCell.getIndex(numCols) + diff));
+            if (diff > 4) {
+                moveTo = getMoveToOverflow(moveTo, diff, 0);
+                for (Cell c: moveTo) {
+                    System.out.println(c);
+                }
+            } else if (diff < -4){
+                moveTo = getMoveToOverflow(moveTo, -(numCols - diff), 0);
+                for (Cell c: moveTo) {
+                    System.out.println(c);
+                }
+            }
+            index++;
+        }
+
+        return moveTo;
+    }
+
+    public boolean checkRowOverflow(TetrisPiece tp, ArrayList<Cell> moveTo) {
+        if (moveTo.size() != 4) {
+            return true;
+        }
+        int index = 0;
+        ArrayList<Cell> actualMatrix = tp.getActualMatrix();
+//        System.out.println("");
+        while (index < moveTo.size()) {
+            int diff;
+            try {
+                Cell currentCell = actualMatrix.get(index);
+                Cell moveCell = moveTo.get(index);
+                if (moveCell == null) {
+                    return true;
+                }
+                diff = currentCell.getColPos() - moveCell.getColPos();
+            } catch (NullPointerException e) {
+                e.printStackTrace();
+                return true;
+            }
+//            System.out.println("diff: " + diff);
+            if (diff > 4 || diff < -4) {
+//                System.out.println(numCols - (Math.abs(diff)));
+                return true;
+            }
+
+            index++;
+        }
+
+        return false;
+    }
+
+    public ArrayList<Cell> applyWallKick(TetrisPiece tp, TetrisPiece copy, int numTries, boolean rotateRight) {
+        int currentRotation = tp.getRotation();
+        int kickIndex = ((currentRotation - 1) * 4) + numTries;
+        ArrayList<Cell> moveTo;
+        int rowChange, colChange;
+
+//        System.out.println("kickIndex: " + kickIndex);
+        if (tp.getType() == TetrisPiece.Type.I) {
+            if (rotateRight) {
+                colChange = wallKickRightI[kickIndex][0];
+                rowChange = wallKickRightI[kickIndex][1];
+            } else {
+                colChange = -wallKickRightI[kickIndex][0];
+                rowChange = -wallKickRightI[kickIndex][1];
+            }
+        } else {
+            if (rotateRight) {
+                colChange = wallKickRightDefault[kickIndex][0];
+                rowChange = wallKickRightDefault[kickIndex][1];
+            } else {
+                colChange = -wallKickRightDefault[kickIndex][0];
+                rowChange = -wallKickRightDefault[kickIndex][1];
+            }
+        }
+
+        moveTo = getMoveTo(copy, colChange, rowChange);
+
+        return moveTo;
+    }
+
+    public synchronized void movePieceSide(TetrisPiece tp, int move) {
+        ArrayList<Cell> moveTo = getMoveTo(tp, move, 0);
+        if (checkPieceMove(tp, moveTo)) {
+            addPieceToBoard(tp, moveTo);
+        }
+
+    }
+
+    public synchronized boolean movePieceDown(TetrisPiece tp) {
+        ArrayList<Cell> moveTo = getMoveTo(tp, 0, 1);
+        if (checkPieceMove(tp, moveTo)) {
+            addPieceToBoard(tp, moveTo);
+            return true;
+        }
+
+        return false;
+    }
+
+
+    // REQUIRES: moveTo must be verified using checkPieceMove
+    public synchronized void addPieceToBoard(TetrisPiece tp, ArrayList<Cell> moveTo) {
+        ArrayList<Cell> oldMatrix = tp.getActualMatrix();
+        clearCells(oldMatrix);
+        tp.clearActualMatrix();
+
+        for (Cell c: moveTo) {
+            Cell newCell = getCell(c.getRowPos(), c.getColPos());
+            newCell.addBlock(new Block(tp.getType(), newCell));
+            tp.addToActualMatrix(newCell);
+        }
+
+    }
+
+    public synchronized ArrayList<Cell> getMoveTo(TetrisPiece tp, int colChange, int rowChange) {
+        return getMoveTo(tp.getActualMatrix(), colChange, rowChange);
+    }
+
+    public synchronized ArrayList<Cell> getMoveTo(ArrayList<Cell> actualMatrix, int colChange, int rowChange) {
+        ArrayList<Cell> moveTo = new ArrayList<>();
+
+        for (Cell c: actualMatrix) {
+            if (c == null) {
+                return new ArrayList<>();
+            }
+
+            int moveSide = c.getColPos() + pieceCol + colChange;
+
+            if (moveSide >= numCols || moveSide < 0) {
+                return new ArrayList<>();
+            }
+
+            int index = (c.getRowPos() + pieceRow + rowChange) * numCols + (moveSide);
+
+            if (index >= numCols * numRows || index < 0) {
+                return new ArrayList<>();
+            }
+
+            moveTo.add(boardList.get(index));
+        }
+
+        return moveTo;
+    }
+
+    public synchronized ArrayList<Cell> getMoveToOverflow(ArrayList<Cell> actualMatrix, int colChange, int rowChange) {
+        ArrayList<Cell> moveTo = new ArrayList<>();
+
+        for (Cell c: actualMatrix) {
+            if (c == null) {
+                return new ArrayList<>();
+            }
+
+            int moveSide = c.getColPos() + pieceCol + colChange;
+
+            int index = (c.getRowPos() + pieceRow + rowChange) * numCols + (moveSide);
+
+            if (index >= numCols * numRows || index < 0) {
+                return new ArrayList<>();
+            }
+
+            moveTo.add(boardList.get(index));
+        }
+
+        return moveTo;
+    }
+
+    public boolean checkPieceMove(TetrisPiece tp, ArrayList<Cell> moveTo) {
+        if (moveTo == null || moveTo.size() == 0 || tp.getActualMatrix().size() != moveTo.size()) {
+            return false;
+        }
+
+        ArrayList<Cell> actualMatrix = tp.getActualMatrix();
+        int colIndex;
+
+        for (int i = 0; i < moveTo.size(); i++) {
+            Cell moveToCurrentCell = moveTo.get(i);
+            Cell actualCurrentCell = actualMatrix.get(i);
+
+//            System.out.println("diff: " + Math.abs(moveToCurrentCell.getColPos() - actualCurrentCell.getColPos()));
+//            if (Math.abs(moveToCurrentCell.getColPos() - actualCurrentCell.getColPos()) > numCols - 2) {
+//                return false;
+//            }
+
+            if (moveToCurrentCell == null || (moveToCurrentCell.isFilled() && !tp.getActualMatrix().contains(moveToCurrentCell))) {
+                return false;
+            }
+        }
+
+//        for (Cell c: moveTo) {
+//            colIndex = c.getColPos();
+//            if (c.isFilled() && !tp.getActualMatrix().contains(c)) {
+//                return false;
+//            }
+//        }
+
+        return true;
     }
 
     public void setPieceRow(int pieceRow) {
@@ -426,12 +742,14 @@ public class Board extends Entity {
                             System.out.println("");
                             System.out.println("Case:        " + i);
                             System.out.println("");
-                            System.out.println("kickCol:     " +  getWallKickRightI[i][0]);
-                            System.out.println("kickRow:     " + getWallKickRightI[i][1]);
+                            System.out.println("kickCol:     " +  wallKickRightI[i][0]);
+                            System.out.println("kickRow:     " + wallKickRightI[i][1]);
                             System.out.println("kick before: ");
                             printPieceRowAndCol();
-                            pieceCol += getWallKickRightI[i][0];
-                            pieceRow += getWallKickRightI[i][1];
+                            shiftPieceCol(wallKickRightI[i][0], tp);
+                            shiftPieceRow(wallKickRightI[i][1], tp);
+//                            pieceCol += getWallKickRightI[i][0];
+//                            pieceRow += getWallKickRightI[i][1];
                             System.out.println("kick applied: ");
                             printPieceRowAndCol();
 //                            if (pieceCol < 0) {
@@ -446,8 +764,10 @@ public class Board extends Entity {
                                 printPieceRowAndCol();
                                 break;
                             } else {
-                                pieceCol -= getWallKickRightI[i][0];
-                                pieceRow -= getWallKickRightI[i][1];
+//                                pieceCol -= getWallKickRightI[i][0];
+//                                pieceRow -= getWallKickRightI[i][1];
+                                shiftPieceCol(-wallKickRightI[i][0], tp);
+                                shiftPieceRow(-wallKickRightI[i][1], tp);
                                 System.out.println("kick removed: ");
                                 printPieceRowAndCol();
                             }
@@ -461,12 +781,14 @@ public class Board extends Entity {
                             System.out.println("");
                             System.out.println("Case:        " + i);
                             System.out.println("");
-                            System.out.println("kickCol:     " +  getWallKickRightI[i][0]);
-                            System.out.println("kickRow:     " + getWallKickRightI[i][1]);
+                            System.out.println("kickCol:     " +  wallKickRightI[i][0]);
+                            System.out.println("kickRow:     " + wallKickRightI[i][1]);
                             System.out.println("kick before: ");
                             printPieceRowAndCol();
-                            pieceCol += getWallKickRightI[i][0];
-                            pieceRow += getWallKickRightI[i][1];
+//                            pieceCol += getWallKickRightI[i][0];
+//                            pieceRow += getWallKickRightI[i][1];
+                            shiftPieceCol(wallKickRightI[i][0], tp);
+                            shiftPieceRow(wallKickRightI[i][1], tp);
                             System.out.println("kick applied: ");
                             printPieceRowAndCol();
                             if (validatePiecePlacement(tp)) {
@@ -474,8 +796,10 @@ public class Board extends Entity {
                                 printPieceRowAndCol();
                                 break;
                             } else {
-                                pieceCol -= getWallKickRightI[i][0];
-                                pieceRow -= getWallKickRightI[i][1];
+//                                pieceCol -= getWallKickRightI[i][0];
+//                                pieceRow -= getWallKickRightI[i][1];
+                                shiftPieceCol(-wallKickRightI[i][0], tp);
+                                shiftPieceRow(-wallKickRightI[i][1], tp);
                                 System.out.println("kick removed: ");
                                 printPieceRowAndCol();
                             }
@@ -487,8 +811,10 @@ public class Board extends Entity {
                     } else {
                         for (int i = 8; i < 12; i++) {
                             System.out.println("Case: " + i);
-                            pieceCol += getWallKickRightI[i][0];
-                            pieceRow += getWallKickRightI[i][1];
+                            shiftPieceCol(wallKickRightI[i][0], tp);
+                            shiftPieceRow(wallKickRightI[i][1], tp);
+//                            pieceCol += getWallKickRightI[i][0];
+//                            pieceRow += getWallKickRightI[i][1];
                             if (pieceCol < 0) {
                                 pieceCol = 0;
                             } else if (pieceCol + (int) tp.getDimensions().getWidth()  > numCols) {
@@ -498,8 +824,10 @@ public class Board extends Entity {
                                 found = true;
                                 break;
                             } else {
-                                pieceCol -= getWallKickRightI[i][0];
-                                pieceRow -= getWallKickRightI[i][1];
+//                                pieceCol -= getWallKickRightI[i][0];
+//                                pieceRow -= getWallKickRightI[i][1];
+                                shiftPieceCol(-wallKickRightI[i][0], tp);
+                                shiftPieceRow(-wallKickRightI[i][1], tp);
                             }
                         }
                     }
@@ -509,14 +837,18 @@ public class Board extends Entity {
                     } else {
                         for (int i = 12; i < 15; i++) {
                             System.out.println("Case: " + i);
-                            pieceCol += getWallKickRightI[i][0];
-                            pieceRow += getWallKickRightI[i][1];
+                            shiftPieceCol(wallKickRightI[i][0], tp);
+                            shiftPieceRow(wallKickRightI[i][1], tp);
+//                            pieceCol += getWallKickRightI[i][0];
+//                            pieceRow += getWallKickRightI[i][1];
                             if (validatePiecePlacement(tp)) {
                                 found = true;
                                 break;
                             } else {
-                                pieceCol -= getWallKickRightI[i][0];
-                                pieceRow -= getWallKickRightI[i][1];
+//                                pieceCol -= getWallKickRightI[i][0];
+//                                pieceRow -= getWallKickRightI[i][1];
+                                shiftPieceCol(-wallKickRightI[i][0], tp);
+                                shiftPieceRow(-wallKickRightI[i][1], tp);
                             }
                         }
                     }
@@ -728,7 +1060,14 @@ public class Board extends Entity {
     }
 
     public Cell getCell(int rowPos, int colPos) {
-        return boardList.get(rowPos * numCols + colPos);
+        Cell cell = null;
+        try {
+            cell = boardList.get(rowPos * numCols + colPos);
+        } catch (IndexOutOfBoundsException e) {
+            System.out.println("Out of bounds!");
+        }
+
+        return cell;
     }
 
     public boolean checkIsValidPieceRow(TetrisPiece tp) {
@@ -771,6 +1110,10 @@ public class Board extends Entity {
         ArrayList<Cell> cells = tp.getActualMatrix();
 //        System.out.println(cells);
         for (Cell c: cells) {
+            int index = c.getIndex(numCols) + (numCols);
+            if (index >= numRows * numCols) {
+                return false;
+            }
             Cell cellBelow = boardList.get(c.getIndex(numCols) + (numCols));
             if (cellBelow.isFilled() && !cells.contains(cellBelow)) {
                 return false;

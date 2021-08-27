@@ -15,6 +15,7 @@ public class TetrisPiece extends Entity{
     private ArrayList<Cell> originalMatrix;
     private ArrayList<Cell> actualMatrix;
     private ArrayList<Block> blocks;
+    private ArrayList<Integer> truePos;
     private boolean inPlay;
 
     public enum Type {
@@ -70,7 +71,7 @@ public class TetrisPiece extends Entity{
         originalMatrix = new ArrayList<>();
         actualMatrix = new ArrayList<>();
         blocks = new ArrayList<>();
-        ArrayList<Integer> truePos = new ArrayList<>();
+        truePos = new ArrayList<>();
         resetOffsets();
 
         switch (this.type) {
@@ -188,6 +189,185 @@ public class TetrisPiece extends Entity{
 
         return newMatrix;
     }
+
+    public void setActualMatrix(Board board, ArrayList<Cell> oldMatrix, boolean rotateRight) {
+//        System.out.println("Copy actual Matrix: ");
+//        printActualMatrix();
+//        int index = 0;
+//        for (Cell c: originalMatrix) {
+//            if (c.isFilled()) {
+//                Cell oldCell = actualMatrix.get(0);
+//                actualMatrix.remove(0);
+//
+//                int rowDiff = oldMatrix.get(index).getRowPos() - c.getRowPos();
+//                int colDiff = oldMatrix.get(index).getColPos() - c.getColPos();
+////                System.out.println("rotation: " + rotation);
+//                System.out.println("");
+//                System.out.println("rowDiff: " + rowDiff);
+//                System.out.println("colDiff: " + colDiff);
+//                System.out.println("");
+//                if (rotation % 2 == 0) {
+//                    System.out.println("first case");
+//                    actualMatrix.add(board.getCell(oldCell.getRowPos() - rowDiff, oldCell.getColPos() - colDiff));
+//                } else {
+//                    System.out.println("second case");
+//                    actualMatrix.add(board.getCell(oldCell.getRowPos() + rowDiff, oldCell.getColPos() + colDiff));
+//                }
+//                index++;
+//
+//            }
+//        }
+
+
+        int offset = 0;
+        for (int i = 0; i < truePos.size(); i++) {
+            int currentPos = truePos.get(i);
+//            System.out.println("currentPos: " + currentPos);
+//            int oldIndex = getIndexOfTruePos(oldMatrix, currentPos);
+//            int newIndex = getIndexOfTruePos(originalMatrix, currentPos);
+//            int rowDiff = newIndex - oldIndex;
+
+            int[] diff = getRowAndColDiff(oldMatrix, originalMatrix, currentPos);
+//            while (rowDiff > matrixNumRows) {
+//                rowDiff -= matrixNumRows;
+//            }
+//            int colDiff = newIndex - oldIndex;
+//            while (colDiff > matrixNumCols) {
+//                colDiff -= matrixNumCols;
+//            }
+
+            int rowDiff = diff[0];
+            int colDiff = diff[1];
+//            int rowDiff = oldCell.getRowPos() - newCell.getRowPos();
+//            int colDiff = oldCell.getColPos() - newCell.getColPos();
+
+//            System.out.println("rowDiff: " + rowDiff);
+//            System.out.println("colDiff: " + colDiff);
+            Cell oldActual = actualMatrix.get(0);
+            actualMatrix.remove(0);
+//            int currentCellIndex = (oldActual.getRowPos() * board.getNumCols() + oldActual.getColPos());
+//            int oldRow = oldActual.getRowPos();
+//            int oldCol = oldActual.getColPos();
+//            int newRow = (oldActual.getRowPos() + rowDiff);
+//            int newCol = (oldActual.getColPos() + colDiff);
+//            int newCellIndex = ((oldActual.getRowPos() + rowDiff) * board.getNumCols() + oldActual.getColPos() + colDiff);
+//            System.out.println("Current Cell index: " + currentCellIndex);
+//            System.out.println("oldRow: " + oldRow);
+//            System.out.println("oldCol: " + oldCol);
+//            System.out.println("newRow: " + newRow);
+//            System.out.println("newCol: " + newCol);
+//            System.out.println("New Cell index: " + newCellIndex);
+            try {
+                actualMatrix.add(board.getCell(oldActual.getRowPos() + rowDiff, oldActual.getColPos() + colDiff));
+            } catch (IndexOutOfBoundsException e) {
+                e.printStackTrace();
+                return;
+            }
+//            System.out.println("");
+        }
+
+
+        // implement using original matrix?
+    }
+
+    public int[] getRowAndColDiff(ArrayList<Cell> old, ArrayList<Cell> rotated, int truePos) {
+        int[] arr = {0, 0};
+        int oldIndex = 0, newIndex = 0;
+
+        for (int i = 0; i < old.size(); i++) {
+            if (old.get(i).getIndex(matrixNumCols) == truePos) {
+                oldIndex = i;
+            }
+        }
+
+        for (int i = 0; i < rotated.size(); i++) {
+            if (rotated.get(i).getIndex(matrixNumCols) == truePos) {
+                newIndex = i;
+            }
+        }
+
+        int oldRow = calcRowOfIndex(oldIndex);
+        int oldCol = calcColOfIndex(oldIndex);
+
+        int newRow = calcRowOfIndex(newIndex);
+        int newCol = calcColOfIndex(newIndex);
+
+        arr[0] = newRow - oldRow;
+        arr[1] = newCol - oldCol;
+
+//        System.out.println("oldIndex:        " + oldIndex);
+//        System.out.println("newIndex:        " + newIndex);
+//
+//        System.out.println("newRow:          " + newRow);
+//        System.out.println("oldRow:          " + oldRow);
+//        System.out.println("newRow - oldRow: " + (newRow - oldRow));
+//        System.out.println("newCol:          " + newCol);
+//        System.out.println("oldCol:          " + oldCol);
+//        System.out.println("newCol - oldCol: " + (newCol - oldCol));
+
+//        int change = 0;
+//        int currentIndex = oldIndex;
+//        if (currentIndex < newIndex) {
+//            while (currentIndex < newIndex) {
+//                if (change % matrixNumCols == 0) {
+//                    arr[0]++;
+//                    arr[1] = 0;
+//                }
+//                if ()
+//                change++;
+//                currentIndex++;
+//            }
+//        } else {
+//            while (newIndex < oldIndex) {
+//                oldIndex--;
+//            }
+//        }
+
+
+        return arr;
+    }
+
+    public int calcRowOfIndex(int index) {
+        int row = 0;
+        while (index >= matrixNumCols) {
+            index -= matrixNumCols;
+            row++;
+        }
+        return row;
+    }
+
+    public int calcColOfIndex(int index) {
+        int col = index;
+        while (col >= matrixNumCols) {
+            col -= matrixNumCols;
+        }
+        return col;
+    }
+
+    public int getIndexOfTruePos(ArrayList<Cell> matrix, int truePos) {
+        for (int i = 0; i < matrix.size(); i++) {
+            if (matrix.get(i).getIndex(matrixNumCols) == truePos) {
+                return i;
+            }
+        }
+
+//        for (Cell c: matrix) {
+//            if (c.getIndex(matrixNumCols) == truePos) {
+//                System.out.println("Index: " + c.getIndex(matrixNumCols));
+//                return c;
+//            }
+//        }
+//
+//        return null;
+        return -1;
+    }
+
+    public void printActualMatrix() {
+        for (Cell c: actualMatrix) {
+            System.out.println(c);
+        }
+    }
+
 
     public ArrayList<Cell> rotateRight(ArrayList<Cell> originalMatrix) {
         ArrayList<Cell> rotatedMatrix = new ArrayList<>();
@@ -338,7 +518,7 @@ public class TetrisPiece extends Entity{
     }
 
     public void printOriginalMatrix() {
-        System.out.println("Original Matrix: ");
+       // System.out.println("Original Matrix: ");
         int num = 0;
         for (Cell c: originalMatrix) {
             System.out.format("%3d   ", c.getRowPos() * matrixNumCols + c.getColPos());
@@ -400,6 +580,7 @@ public class TetrisPiece extends Entity{
 
     public void rotateRight() {
         originalMatrix = rotateRight(originalMatrix);
+
         resetOffsets();
         dimensions = calculateDimensions();
     }

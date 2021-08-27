@@ -35,7 +35,8 @@ public class Block extends Entity{
         this.isLocked = true;
         this.flip = false;
         this.move = false;
-        this.velocityX = 2;
+        this.velocityX = cell.velocityX;
+        this.velocityY = cell.velocityY;
         this.moveDownCounter = 1;
 
         setBlockImg(this.blockType);
@@ -74,6 +75,10 @@ public class Block extends Entity{
         }
     }
 
+    public TetrisPiece.Type getBlockType() {
+        return blockType;
+    }
+
     public BufferedImage getImg() {
         return img;
     }
@@ -94,9 +99,11 @@ public class Block extends Entity{
         cell = c;
         this.actualX = cell.getActualX();
         this.actualY = cell.getActualY();
+        this.changeX = cell.getChangeX();
+        this.changeY = cell.getChangeY();
         this.rowPos = c.getRowPos();
         this.colPos = c.getColPos();
-        move = false;
+        move = c.getCanMove();
     }
 
     public int getColPos() {
@@ -159,6 +166,9 @@ public class Block extends Entity{
 //                System.out.println("Passive move down!");
 //                moveBlockDown();
 //            }
+//            setChangeX(cell.getChangeX());
+//            setChangeY(cell.getChangeY());
+
             lockBlock(cell);
         }
 
@@ -177,10 +187,10 @@ public class Block extends Entity{
 //        }
 
         //System.out.println("Move Counter: " + moveDownCounter);
-        moveDownCounter++;
-        if (moveDownCounter > 6000) {
-            moveDownCounter = 1;
-        }
+//        moveDownCounter++;
+//        if (moveDownCounter > 6000) {
+//            moveDownCounter = 1;
+//        }
     }
 
     @Override

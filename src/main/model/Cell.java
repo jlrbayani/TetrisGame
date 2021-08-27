@@ -43,6 +43,10 @@ public class Cell extends Entity{
         return rowPos;
     }
 
+    public boolean getCanMove() {
+        return canMove;
+    }
+
     @Override
     public void setExtrapolation(double extrapolate) {
         this.extrapolate = extrapolate;
@@ -53,31 +57,31 @@ public class Cell extends Entity{
 
     @Override
     public void update() {
-        if (canMove) {
-            if (!flip) {
-                changeX += (velocityX * extrapolate);
-            }
-            if (flip) {
-                changeX -= (velocityX * extrapolate);
-            }
-
-            if (changeX > 100) {
-                flip = true;
-            }
-            if (changeX < 1) {
-                flip = false;
-            }
-        }
+//        if (canMove) {
+//            if (!flip) {
+//                changeX += (velocityX * extrapolate);
+//            }
+//            if (flip) {
+//                changeX -= (velocityX * extrapolate);
+//            }
+//
+//            if (changeX > 100) {
+//                flip = true;
+//            }
+//            if (changeX < 1) {
+//                flip = false;
+//            }
+//        }
 
         if (isFilled()) {
-            block.setBoard(board);
+//            block.setBoard(board);
+//            if (changeX != block.getChangeX()) {
+//                block.setChangeX(changeX);
+//            }
+//            if (changeY != block.getChangeY()) {
+//                block.setChangeY(changeY);
+//            }
             block.update();
-            if (changeX != block.getChangeX()) {
-                block.setChangeX(changeX);
-            }
-            if (changeY != block.getChangeY()) {
-                block.setChangeY(changeY);
-            }
 //            System.out.println("Cell x: " + changeX);
 //            System.out.println("Block x: " + block.getChangeX());
 //            System.out.println("Cell y: " + changeY);
@@ -125,6 +129,9 @@ public class Cell extends Entity{
     }
 
     public void addBlock(Block block) {
+//        if (block == null) {
+//            return;
+//        }
         this.block = block;
         block.lockBlock(this);
     }

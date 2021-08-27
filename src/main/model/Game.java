@@ -3,6 +3,7 @@ package main.model;
 import main.ui.SoundSystem;
 import main.ui.TetrisFrame;
 
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,6 +40,7 @@ public class Game implements Runnable{
     private int[] keysNumCall;
     private ArrayList<Entity> entityList;
     private Sound blockPlace, theme;
+    private Graphics graphics;
 
     private int numFall, processInput;
 
@@ -62,7 +64,7 @@ public class Game implements Runnable{
         keysSinglePress = new boolean[3];
         keysNumCall = new int[3];
         Arrays.fill(keysSinglePress, true);
-
+        graphics = frame.getCurrentPanel().getGraphics();
     }
 
     private void initSounds() {
@@ -91,17 +93,29 @@ public class Game implements Runnable{
             isPaused = false;
         }
 
+        processInput();
+        updateHeldPiece();
+        updatePieceInPlay();
+        updateNextPieces();
+        if (pieceInPlay == null) {
+            getNewPieceInPlay();
+        }
        for (Entity e: entityList) {
            e.update();
        }
 
-       processInput();
-       updateHeldPiece();
-       updatePieceInPlay();
-       updateNextPieces();
-       if (pieceInPlay == null) {
-           getNewPieceInPlay();
-       }
+    }
+
+    public void setGraphics(Graphics g) {
+        this.graphics = g;
+    }
+
+    public synchronized void render() {
+        Graphics2D g2 = (Graphics2D) graphics;
+
+        for (Entity e: getEntityList()) {
+            e.draw(g2);
+        }
     }
 
     public synchronized void pauseGame() {
@@ -160,7 +174,7 @@ public class Game implements Runnable{
         nextPieces = new LinkedList<>();
 
         for (int i = 0; i < 3; i++) {
-            nextPieces.add(new TetrisPiece(1));
+            nextPieces.add(new TetrisPiece());
         }
 
         holdBoard = new Board(HOLD_COLS, HOLD_ROWS, 50, 100, 0, 0);
@@ -172,9 +186,10 @@ public class Game implements Runnable{
 
     public void getNewPieceInPlay() {
         TetrisPiece newPiece = nextPieces.remove();
-        nextPieces.add(new TetrisPiece(1));
+        nextPieces.add(new TetrisPiece());
         pieceInPlay = newPiece;
         gameBoard.validateStartingPieceCol(pieceInPlay);
+        gameBoard.initPieceToBoard(pieceInPlay);
     }
 
     private void updateHeldPiece() {
@@ -190,12 +205,25 @@ public class Game implements Runnable{
 //                System.out.println("Row: " + c.getRowPos() + " Col: " + c.getColPos());
 //            }
             //System.out.println(pieceInPlay.getActualMatrix().size());
-            gameBoard.clearCells(pieceInPlay.getActualMatrix());
-            gameBoard.addTetrisPiece(pieceInPlay);
+
+
+//            gameBoard.clearCells(pieceInPlay.getActualMatrix());
+//            gameBoard.addTetrisPiece(pieceInPlay);
+
+//            gameBoard.addPieceToBoard(pieceInPlay, pieceInPlay.getActualMatrix());
+
+            gameBoard.updatePieceInBoard(pieceInPlay);
+
 
             if (!isPaused) {
                 if (numFall % currentGameSpeed == 0) {
-                    if (!gameBoard.shiftPieceRow(1, pieceInPlay)) {
+//                    if (!gameBoard.shiftPieceRow(1, pieceInPlay)) {
+//                        lockPieceInPlay();
+//                    }
+
+
+//
+                    if (!gameBoard.movePieceDown(pieceInPlay)) {
                         lockPieceInPlay();
                     }
                 }
@@ -247,17 +275,22 @@ public class Game implements Runnable{
 
         while (keysNumCall[0] > 0) {
 //            System.out.println("Move Left!");
-            gameBoard.shiftPieceCol(-1, pieceInPlay);
+//            gameBoard.shiftPieceCol(-1, pieceInPlay);
+            gameBoard.movePieceSide(pieceInPlay, -1);
             keysNumCall[0]--;
         }
         while (keysNumCall[1] > 0) {
 //            System.out.println("Move Right!");
-            gameBoard.shiftPieceCol(1, pieceInPlay);
+//            gameBoard.shiftPieceCol(1, pieceInPlay);
+            gameBoard.movePieceSide(pieceInPlay, 1);
             keysNumCall[1]--;
         }
         while (keysNumCall[2] > 0) {
 //            System.out.println("Soft Drop!");
-            if (!gameBoard.shiftPieceRow(1, pieceInPlay)) {
+//            if (!gameBoard.shiftPieceRow(1, pieceInPlay)) {
+//                lockPieceInPlay();
+//            }
+            if (!gameBoard.movePieceDown(pieceInPlay)) {
                 lockPieceInPlay();
             }
             keysNumCall[2]--;
@@ -323,7 +356,10 @@ public class Game implements Runnable{
                 if (keysSinglePress[1] && pieceInPlay != null) {
 //                    System.out.println("Rotate Right!");
                     //pieceInPlay.rotateRight();
-                    gameBoard.wallKickRotationRight(pieceInPlay);
+//                    gameBoard.wallKickRotationRight(pieceInPlay);
+
+                    gameBoard.rotatePieceInPlay(pieceInPlay, true);
+
                  //   gameBoard.findOptimalCells(pieceInPlay);
                     //gameBoard.rotatePiece(pieceInPlay,true);
 //                    pieceInPlay.printOffsets();
@@ -332,9 +368,10 @@ public class Game implements Runnable{
                 break;
             case KeyEvent.VK_Z:
                 if (keysSinglePress[2] && pieceInPlay != null) {
-                    System.out.println("Rotate Left!");
+//                    System.out.println("Rotate Left!");
 //                    pieceInPlay.rotateLeft();
-                    gameBoard.rotatePiece(pieceInPlay, false);
+                    gameBoard.rotatePieceInPlay(pieceInPlay, false);
+//                    gameBoard.rotatePiece(pieceInPlay, false);
 //                    pieceInPlay.printOffsets();
                     keysSinglePress[2] = false;
                 }
@@ -353,6 +390,7 @@ public class Game implements Runnable{
                         heldPiece = pieceInPlay;
                         heldPiece.setPieceToMove(false);
                         pieceInPlay = swap;
+                        gameBoard.initPieceToBoard(pieceInPlay);
                         pieceInPlay.setPieceToMove(true);
                     }
                     holdBoard.clearBoard();
@@ -405,6 +443,7 @@ public class Game implements Runnable{
             //System.out.println(lag / MS_PER_UPDATE);
 
             //frame.getCurrentPanel().repaint();
+            //render();
             frames++;
 
             while (System.currentTimeMillis() - timer > 1000) {

@@ -23,6 +23,14 @@ public abstract class Entity {
         this.velocityY = velY;
     }
 
+    public int getVelocityX() {
+        return velocityX;
+    }
+
+    public int getVelocityY() {
+        return velocityY;
+    }
+
     public int getActualX() {
         return actualX;
     }
