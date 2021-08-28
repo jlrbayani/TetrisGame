@@ -8,6 +8,7 @@ public class Board extends Entity {
     private int numCols;
     private int numRows;
     private ArrayList<Cell> boardList;
+    private ArrayList<Cell> ghostList;
     private int actualX, actualY;
     private double extrapolate;
     private int pieceRow, pieceCol;
@@ -68,10 +69,16 @@ public class Board extends Entity {
         for (Entity e: boardList) {
             e.draw(g2);
         }
+        for (Cell c: ghostList) {
+            if (boardList.contains(c)) {
+                c.draw(g2);
+            }
+        }
     }
 
     public void initBoard() {
         boardList = new ArrayList<>();
+        ghostList = new ArrayList<>();
         int currentX = actualX;
         int currentY = actualY;
 
@@ -190,6 +197,36 @@ public class Board extends Entity {
         return tp.getActualMatrix().size() == 4;
     }
 
+    public synchronized void fastDropPiece(TetrisPiece tp) {
+        addPieceToBoard(tp, ghostList);
+    }
+
+    public synchronized void updateGhostCells(TetrisPiece tp) {
+        if (tp == null) {
+            return;
+        }
+        TetrisPiece copy = tp.copyPiece();
+        for (Cell c: ghostList) {
+            c.setIsGhost(false);
+        }
+        ghostList = new ArrayList<>();
+        ArrayList<Cell> ghostCellsBefore = copy.getActualMatrix();
+        ArrayList<Cell> ghostCellsCurrent = copy.getActualMatrix();
+        int index = 0;
+        while (checkPieceMove(tp, ghostCellsCurrent)) {
+//            System.out.println(ghostCellsCurrent.size());
+            ghostCellsBefore = ghostCellsCurrent;
+            ghostCellsCurrent = getMoveTo(ghostCellsCurrent, 0, 1);
+            index++;
+        }
+
+//        System.out.println("");
+        for (Cell c: ghostCellsBefore) {
+            c.setIsGhost(true);
+//            System.out.println(c);
+        }
+        ghostList = ghostCellsBefore;
+    }
 
     public synchronized void updatePieceInBoard(TetrisPiece tp) {
         for (Cell c: tp.getActualMatrix()) {
@@ -453,14 +490,8 @@ public class Board extends Entity {
             return false;
         }
 
-        ArrayList<Cell> actualMatrix = tp.getActualMatrix();
-        int colIndex;
-
-        for (int i = 0; i < moveTo.size(); i++) {
-            Cell moveToCurrentCell = moveTo.get(i);
-            Cell actualCurrentCell = actualMatrix.get(i);
-
-//            System.out.println("diff: " + Math.abs(moveToCurrentCell.getColPos() - actualCurrentCell.getColPos()));
+        for (Cell moveToCurrentCell : moveTo) {
+            //            System.out.println("diff: " + Math.abs(moveToCurrentCell.getColPos() - actualCurrentCell.getColPos()));
 //            if (Math.abs(moveToCurrentCell.getColPos() - actualCurrentCell.getColPos()) > numCols - 2) {
 //                return false;
 //            }
@@ -1034,7 +1065,13 @@ public class Board extends Entity {
             if (i % (numCols) == 0 && i > 0) {
                 System.out.println();
             }
-            System.out.format("%3d  ", (boardList.get(i).getRowPos() * numCols + boardList.get(i).getColPos()));
+//            System.out.format("%3d  ", (boardList.get(i).getRowPos() * numCols + boardList.get(i).getColPos()));
+            int col = 0;
+            if (boardList.get(i).getIsGhost()) {
+                col = 1;
+            }
+            System.out.format("%3d  ", col);
+
             //System.out.print((boardList.get(i).getRowPos() + (boardList.get(i).getColPos() * (numCols))) + "       ");
         }
 

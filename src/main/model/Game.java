@@ -212,15 +212,16 @@ public class Game implements Runnable{
 
 //            gameBoard.addPieceToBoard(pieceInPlay, pieceInPlay.getActualMatrix());
 
-            gameBoard.updatePieceInBoard(pieceInPlay);
-
-
             if (!isPaused) {
+                //gameBoard.updatePieceInBoard(pieceInPlay);
+                gameBoard.updateGhostCells(pieceInPlay);
                 if (numFall % currentGameSpeed == 0) {
 //                    if (!gameBoard.shiftPieceRow(1, pieceInPlay)) {
 //                        lockPieceInPlay();
 //                    }
 
+//                    System.out.println("");
+//                    gameBoard.printBoard();
 
 //
                     if (!gameBoard.movePieceDown(pieceInPlay)) {
@@ -347,7 +348,8 @@ public class Game implements Runnable{
                 if (keysSinglePress[0] && pieceInPlay != null) {
                     System.out.println("Fast Drop!");
                     //pieceInPlay.lockPiece(gameBoard);
-                    pieceInPlay.fastDrop();
+                    //pieceInPlay.fastDrop();
+                    gameBoard.fastDropPiece(pieceInPlay);
                     lockPieceInPlay();
                     keysSinglePress[0] = false;
                 }

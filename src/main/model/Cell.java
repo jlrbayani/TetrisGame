@@ -118,11 +118,14 @@ public class Cell extends Entity{
         g2.draw(rect);
         g2.setComposite(pastAlpha);
         setAlpha(1.0f);
+        g2.setStroke(new BasicStroke(1.0f));
     }
 
     public void setIsGhost(boolean isGhost) {
         this.isGhost = isGhost;
     }
+
+    public boolean getIsGhost() { return isGhost; }
 
     public boolean isFilled() {
         return block != null;
