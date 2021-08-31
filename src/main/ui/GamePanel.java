@@ -144,10 +144,15 @@ public class GamePanel extends JPanel implements ActionListener {
         return game;
     }
 
+    // TODO: can implement different layers by rendering different entity lists depending on order
     @Override
     protected synchronized void paintComponent(Graphics g) {
         super.paintComponent(g);
+        // background rendering test
         Graphics2D g2 = (Graphics2D) g;
+        g2.setColor(Color.WHITE);
+        g2.fill(new Rectangle(45, 95, 132, 132));
+
         leftPanel.repaint();
         centrePanel.repaint();
         rightPanel.repaint();

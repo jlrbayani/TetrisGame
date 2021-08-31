@@ -92,7 +92,57 @@ public class Board extends Entity {
         }
     }
 
-    public void checkLineClear() {
+    public void removeFirstBlock() {
+        for (Cell c: boardList) {
+            if (c.isFilled() || c.isLit()) {
+                c.removeBlock();
+                c.setIsGhost(false);
+                c.setIsLit(false);
+                return;
+            }
+        }
+    }
+
+    public boolean boardContainsBlock() {
+        for (Cell c: boardList) {
+            if (c.isFilled()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public void applyLightFade(TetrisPiece tp) {
+        if (tp.getActualMatrix().size() == 0) {
+            return;
+        }
+        Cell firstCell = tp.getActualMatrix().get(0);
+        ArrayList<Integer> columnsLit = new ArrayList<>();
+        for (Cell c: tp.getActualMatrix()) {
+            if (!columnsLit.contains(c.getColPos())) {
+                columnsLit.add(c.getColPos());
+            }
+        }
+        int startingHeight = firstCell.getRowPos();
+        int numRowsLit = startingHeight - 1;
+
+        float intensity = 1 / (float) numRowsLit;
+
+        for (Integer col: columnsLit) {
+            for (int i = numRowsLit; i > 0; i--) {
+                Cell currentCell = boardList.get(i * numCols + col);
+                if (!currentCell.isFilled()) {
+                    currentCell.setIsLit(true);
+                    currentCell.setLightFade(i * intensity);
+                }
+            }
+        }
+
+    }
+
+    public int getLineClear() {
+        int rowsCleared = 0;
         for (int row = 0; row < numRows; row++) {
             ArrayList<Cell> checkCells = new ArrayList<>();
             for (int col = 0; col < numCols; col++) {
@@ -104,9 +154,12 @@ public class Board extends Entity {
 
             if (checkCells.size() == numCols) {
                 clearCells(checkCells);
+                rowsCleared++;
                 shiftBlocks(row);
             }
         }
+
+        return rowsCleared;
     }
 
     public void shiftBlocks(int endRow) {
@@ -173,7 +226,7 @@ public class Board extends Entity {
         }
     }
 
-    public boolean initPieceToBoard(TetrisPiece tp) {
+    public synchronized boolean initPieceToBoard(TetrisPiece tp) {
         ArrayList<Cell> matrix = tp.getOriginalMatrix();
         int matrixNumRows = tp.getMatrixNumRows();
         int matrixNumCols = tp.getMatrixNumCols();
@@ -187,18 +240,50 @@ public class Board extends Entity {
                     int index = (row + pieceRow) * numCols + col + pieceCol;
                     Cell actualCell = boardList.get(index);
                     if (actualCell != null) {
-                        actualCell.addBlock(currentCell.getBlock());
-                        tp.addToActualMatrix(actualCell);
+                        moveTo.add(actualCell);
+
                     }
                 }
             }
         }
 
-        return tp.getActualMatrix().size() == 4;
+        ArrayList<Cell> checkAbove = new ArrayList<>();
+        for (Cell c: moveTo) {
+            checkAbove.add(boardList.get(c.getIndex(numCols)));
+        }
+        while (!checkPieceMove(tp, moveTo)) {
+            checkAbove = getMoveTo(checkAbove, 0, -1);
+            moveTo = getMoveTo(moveTo, 1, 0);
+            if (moveTo.size() == 0 && checkAbove.size() != 0) {
+                moveTo = checkAbove;
+            } else if (moveTo.size() == 0 && checkAbove.size() == 0){
+                return false;
+            }
+        }
+
+        if (checkPieceMove(tp, moveTo)) {
+            addPieceToBoard(tp, moveTo);
+//            System.out.println("success");
+            return true;
+        }
+
+//        actualCell.addBlock(currentCell.getBlock());
+//        tp.addToActualMatrix(actualCell);
+
+        return false;
     }
 
-    public synchronized void fastDropPiece(TetrisPiece tp) {
+    // TODO: implement fastDrop board bounce
+    public synchronized int fastDropPiece(TetrisPiece tp) {
+        ArrayList<Cell> actualMatrix = tp.getActualMatrix();
+        if (actualMatrix.size() == 0) {
+            return 0;
+        }
+        int bottomRowTp = actualMatrix.get(0).getRowPos();
+        int topRowGhost = ghostList.get(3).getRowPos();
         addPieceToBoard(tp, ghostList);
+
+        return topRowGhost - bottomRowTp + 1;
     }
 
     public synchronized void updateGhostCells(TetrisPiece tp) {
@@ -409,6 +494,9 @@ public class Board extends Entity {
     }
 
     public synchronized boolean movePieceDown(TetrisPiece tp) {
+        if (tp == null) {
+            return false;
+        }
         ArrayList<Cell> moveTo = getMoveTo(tp, 0, 1);
         if (checkPieceMove(tp, moveTo)) {
             addPieceToBoard(tp, moveTo);
@@ -434,6 +522,9 @@ public class Board extends Entity {
     }
 
     public synchronized ArrayList<Cell> getMoveTo(TetrisPiece tp, int colChange, int rowChange) {
+        if (tp == null) {
+            return null;
+        }
         return getMoveTo(tp.getActualMatrix(), colChange, rowChange);
     }
 
@@ -445,13 +536,13 @@ public class Board extends Entity {
                 return new ArrayList<>();
             }
 
-            int moveSide = c.getColPos() + pieceCol + colChange;
+            int moveSide = c.getColPos() + colChange;
 
             if (moveSide >= numCols || moveSide < 0) {
                 return new ArrayList<>();
             }
 
-            int index = (c.getRowPos() + pieceRow + rowChange) * numCols + (moveSide);
+            int index = (c.getRowPos() + rowChange) * numCols + (moveSide);
 
             if (index >= numCols * numRows || index < 0) {
                 return new ArrayList<>();
@@ -486,7 +577,8 @@ public class Board extends Entity {
     }
 
     public boolean checkPieceMove(TetrisPiece tp, ArrayList<Cell> moveTo) {
-        if (moveTo == null || moveTo.size() == 0 || tp.getActualMatrix().size() != moveTo.size()) {
+        if (moveTo == null || moveTo.size() == 0) {
+//            System.out.println("here");
             return false;
         }
 
@@ -730,7 +822,7 @@ public class Board extends Entity {
 
     }
 
-    // TODO: find a way to implement a better way of checking filled cells and consequently bounds/walls
+    // TODO: do code cleanup and remove unecessary code
     public void wallKickRotationRight(TetrisPiece tp) {
         ArrayList<Cell> oldCells = new ArrayList<>();
         boolean found = false;

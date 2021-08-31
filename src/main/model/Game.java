@@ -3,7 +3,6 @@ package main.model;
 import main.ui.SoundSystem;
 import main.ui.TetrisFrame;
 
-import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,7 +17,18 @@ public class Game implements Runnable{
     public static  final int HOLD_COLS = 4;
     public static  final int HOLD_ROWS = 4;
 
+    public static final int FAST_DROP_PER_CELL = 2;
+    public static final int SLOW_DROP_PER_CELL = 1;
+    public static final int INIT_CLEAR = 0;
+    public static final int LINE_CLEAR = 100;
+    public static final int TETRIS = 500;
+    public static final int BACK_TO_BACK_TETRIS = 1200;
+
+    public static final int LEVEL_1 = 60;
+    public static final int LEVEL_20 = 3;
+
     private boolean keepRunning;
+    private boolean isOver;
     private boolean isPaused;
     private TetrisFrame frame;
     private Thread gameThread;
@@ -29,8 +39,9 @@ public class Game implements Runnable{
     private Board holdBoard, gameBoard, nextBoard;
     private ScoreMultiplier scoreMultiplier;
     private Score score;
-    private int lines;
-    private boolean canSwap;
+    private Level level;
+    private Lines lines;
+    private boolean canSwap, addToNumTries;
 
     private TetrisPiece pieceInPlay;
     private TetrisPiece heldPiece;
@@ -40,20 +51,34 @@ public class Game implements Runnable{
     private int[] keysNumCall;
     private ArrayList<Entity> entityList;
     private Sound blockPlace, theme;
-    private Graphics graphics;
 
-    private int numFall, processInput;
+    private int numFall, processInput, incrementalUpdate, numTries;
+    private int rowsCleared, currentLevel, softPoints, fastPoints, currentMultiplierMeter, previousClear;
+    private double currentMultiplier;
 
     public Game(TetrisFrame frame) {
         this.frame = frame;
         this.ss = frame.getSoundSystem();
-        currentGameSpeed = 30;
-        lines = 0;
+        isOver = false;
+        currentGameSpeed = LEVEL_1;
         isPaused = false;
         canSwap = true;
         numFall = 1;
+        incrementalUpdate = 1;
         processInput = 0;
+        numTries = 0;
+        addToNumTries = false;
+        previousClear = INIT_CLEAR;
 
+        // game stats initialization
+        rowsCleared = 0;
+        currentMultiplier = 1;
+        currentLevel = 1;
+        softPoints = 0;
+        fastPoints = 0;
+        currentMultiplierMeter = 1;
+
+        // game entities initialization
         entityList = new ArrayList<>();
         heldPiece = null;
         pieceInPlay = null;
@@ -64,7 +89,6 @@ public class Game implements Runnable{
         keysSinglePress = new boolean[3];
         keysNumCall = new int[3];
         Arrays.fill(keysSinglePress, true);
-        graphics = frame.getCurrentPanel().getGraphics();
     }
 
     private void initSounds() {
@@ -87,35 +111,55 @@ public class Game implements Runnable{
         }
     }
 
+    // TODO: implement gameOver Screen
     public synchronized void update() {
         if (entityList.contains(cdt) && cdt.getIsFinished() && isPaused) {
             resumeGame();
             isPaused = false;
         }
 
-        processInput();
-        updateHeldPiece();
-        updatePieceInPlay();
-        updateNextPieces();
-        if (pieceInPlay == null) {
-            getNewPieceInPlay();
+        for (Entity e: entityList) {
+            e.update();
         }
+
+        if (isOver) {
+            score.setCurrentScore(score.getScoreNow());
+            updateGameOver();
+            return;
+        } else {
+            processInput();
+            updateHeldPiece();
+            updatePieceInPlay();
+            updateNextPieces();
+            if (pieceInPlay == null) {
+                getNewPieceInPlay();
+            }
+            addToLines();
+            calculateScore();
+            updateGameSpeed();
+        }
+
        for (Entity e: entityList) {
            e.update();
        }
 
+
     }
 
-    public void setGraphics(Graphics g) {
-        this.graphics = g;
-    }
+    public synchronized void updateGameOver() {
+        if (!gameBoard.boardContainsBlock()) {
+            endGame();
 
-    public synchronized void render() {
-        Graphics2D g2 = (Graphics2D) graphics;
-
-        for (Entity e: getEntityList()) {
-            e.draw(g2);
         }
+
+        if (incrementalUpdate % 3 == 0) {
+            gameBoard.removeFirstBlock();
+        }
+        incrementalUpdate++;
+        if (incrementalUpdate > 12000) {
+            incrementalUpdate = 0;
+        }
+
     }
 
     public synchronized void pauseGame() {
@@ -160,16 +204,20 @@ public class Game implements Runnable{
 
     public synchronized void endGame() {
         keepRunning = false;
-
     }
 
+    public synchronized void showGameOver() {
+        isOver = true;
+
+//        endGame();
+    }
 
     private synchronized void initStartingEntities() {
-        gameBoard = new Board(GAME_COLS, GAME_ROWS, 310, 50, 0, 0);
+        gameBoard = new Board(GAME_COLS, GAME_ROWS, 310, 20, 1, 0);
         gameBoard.setCanMove(true);
         entityList.add(gameBoard);
 
-        nextBoard = new Board(NEXT_COLS, NEXT_ROWS, 750, 100, 0, 0);
+        nextBoard = new Board(NEXT_COLS, NEXT_ROWS, 750, 100, 1, 0);
         entityList.add(nextBoard);
         nextPieces = new LinkedList<>();
 
@@ -177,28 +225,52 @@ public class Game implements Runnable{
             nextPieces.add(new TetrisPiece());
         }
 
-        holdBoard = new Board(HOLD_COLS, HOLD_ROWS, 50, 100, 0, 0);
+        holdBoard = new Board(HOLD_COLS, HOLD_ROWS, 50, 100, 1, 0);
         entityList.add(holdBoard);
 
-        scoreMultiplier = new ScoreMultiplier(20, 300);
+        score = new Score(45, 300);
+        entityList.add(score);
+
+        lines = new Lines(45, 400);
+        entityList.add(lines);
+
+        level = new Level(45, 500);
+        entityList.add(level);
+
+        scoreMultiplier = new ScoreMultiplier(288, 640);
         entityList.add(scoreMultiplier);
+
     }
 
     public void getNewPieceInPlay() {
         TetrisPiece newPiece = nextPieces.remove();
         nextPieces.add(new TetrisPiece());
         pieceInPlay = newPiece;
-        gameBoard.validateStartingPieceCol(pieceInPlay);
-        gameBoard.initPieceToBoard(pieceInPlay);
+        numTries = 0;
+        // gameBoard.validateStartingPieceCol(pieceInPlay);
+//        gameBoard.setPieceCol((int) (pieceInPlay.getDimensions().getWidth()));
+        if (!gameBoard.initPieceToBoard(pieceInPlay)) {
+//            System.out.println(numTries);
+            showGameOver();
+        }
     }
 
     private void updateHeldPiece() {
         if (heldPiece != null) {
+            if (heldPiece.getType() != TetrisPiece.Type.L && heldPiece.getType() != TetrisPiece.Type.I && heldPiece.getType() != TetrisPiece.Type.T) {
+                holdBoard.setPieceCol(1);
+            } else {
+                holdBoard.setPieceCol(0);
+            }
+            if (heldPiece.getType() != TetrisPiece.Type.I) {
+                holdBoard.setPieceRow(1);
+            }
             holdBoard.addTetrisPiece(heldPiece);
+
         }
     }
 
-    private void updatePieceInPlay() {
+    private synchronized void updatePieceInPlay() {
 
         if (pieceInPlay != null) {
 //            for (Cell c: pieceInPlay.getActualMatrix()) {
@@ -211,21 +283,21 @@ public class Game implements Runnable{
 //            gameBoard.addTetrisPiece(pieceInPlay);
 
 //            gameBoard.addPieceToBoard(pieceInPlay, pieceInPlay.getActualMatrix());
-
             if (!isPaused) {
                 //gameBoard.updatePieceInBoard(pieceInPlay);
                 gameBoard.updateGhostCells(pieceInPlay);
                 if (numFall % currentGameSpeed == 0) {
-//                    if (!gameBoard.shiftPieceRow(1, pieceInPlay)) {
-//                        lockPieceInPlay();
-//                    }
-
-//                    System.out.println("");
-//                    gameBoard.printBoard();
-
-//
-                    if (!gameBoard.movePieceDown(pieceInPlay)) {
-                        lockPieceInPlay();
+                    // numTries allows the player to rotate and move as much as they can for a short time period
+                    if (!gameBoard.movePieceDown(pieceInPlay) || numTries > 0) {
+                        if (numTries >= 2) {
+                            if (!gameBoard.movePieceDown(pieceInPlay)) {
+                                lockPieceInPlay();
+                            } else {
+                                numTries = 0;
+                            }
+                        } else {
+                            numTries++;
+                        }
                     }
                 }
 
@@ -246,10 +318,15 @@ public class Game implements Runnable{
 
         nextBoard.clearBoard();
         for (int i = 0; i < 3; i++) {
-            nextBoard.addTetrisPiece(nextPieces.get(i));
-            nextBoard.shiftPieceRow(6);
+            TetrisPiece nextPiece = nextPieces.get(i);
+            if (nextPiece.getType() != TetrisPiece.Type.L && nextPiece.getType() != TetrisPiece.Type.I && nextPiece.getType() != TetrisPiece.Type.T) {
+                nextBoard.setPieceCol(1);
+            }
+            nextBoard.addTetrisPiece(nextPiece);
+            nextBoard.shiftPieceRow(5);
+            nextBoard.setPieceCol(0);
         }
-        nextBoard.setPieceRow(0);
+        nextBoard.setPieceRow(1);
 
     }
 
@@ -269,7 +346,7 @@ public class Game implements Runnable{
         return keysNumCall;
     }
 
-    public void processInput() {
+    public synchronized void processInput() {
         if (isPaused) {
             return;
         }
@@ -291,6 +368,7 @@ public class Game implements Runnable{
 //            if (!gameBoard.shiftPieceRow(1, pieceInPlay)) {
 //                lockPieceInPlay();
 //            }
+            softPoints += SLOW_DROP_PER_CELL;
             if (!gameBoard.movePieceDown(pieceInPlay)) {
                 lockPieceInPlay();
             }
@@ -336,7 +414,7 @@ public class Game implements Runnable{
         }
     }
 
-    public void keyPressed(int keyCode) {
+    public synchronized void keyPressed(int keyCode) {
         switch (keyCode) {
             case KeyEvent.VK_ESCAPE:
                 if (!isPaused) {
@@ -346,43 +424,31 @@ public class Game implements Runnable{
                 break;
             case KeyEvent.VK_SPACE:
                 if (keysSinglePress[0] && pieceInPlay != null) {
-                    System.out.println("Fast Drop!");
-                    //pieceInPlay.lockPiece(gameBoard);
-                    //pieceInPlay.fastDrop();
-                    gameBoard.fastDropPiece(pieceInPlay);
+                    int numCellsDropped = gameBoard.fastDropPiece(pieceInPlay);
+                    fastPoints += numCellsDropped * FAST_DROP_PER_CELL;
+                    scoreMultiplier.addToMultiplierHeight(100);
                     lockPieceInPlay();
                     keysSinglePress[0] = false;
                 }
                 break;
             case KeyEvent.VK_UP:
                 if (keysSinglePress[1] && pieceInPlay != null) {
-//                    System.out.println("Rotate Right!");
-                    //pieceInPlay.rotateRight();
-//                    gameBoard.wallKickRotationRight(pieceInPlay);
-
                     gameBoard.rotatePieceInPlay(pieceInPlay, true);
-
-                 //   gameBoard.findOptimalCells(pieceInPlay);
-                    //gameBoard.rotatePiece(pieceInPlay,true);
-//                    pieceInPlay.printOffsets();
                     keysSinglePress[1] = false;
                 }
                 break;
             case KeyEvent.VK_Z:
                 if (keysSinglePress[2] && pieceInPlay != null) {
-//                    System.out.println("Rotate Left!");
-//                    pieceInPlay.rotateLeft();
                     gameBoard.rotatePieceInPlay(pieceInPlay, false);
-//                    gameBoard.rotatePiece(pieceInPlay, false);
-//                    pieceInPlay.printOffsets();
                     keysSinglePress[2] = false;
                 }
                 break;
             case KeyEvent.VK_C:
                 if (canSwap && pieceInPlay != null) {
-                    System.out.println("Swapping!");
+//                    System.out.println("Swapping!");
                     gameBoard.clearCells(pieceInPlay.getActualMatrix());
                     pieceInPlay.resetRotation();
+                    gameBoard.setPieceRow(1);
                     if (heldPiece == null) {
                         heldPiece = pieceInPlay;
                         heldPiece.setPieceToMove(false);
@@ -397,7 +463,6 @@ public class Game implements Runnable{
                     }
                     holdBoard.clearBoard();
                     canSwap = false;
-                    gameBoard.setPieceRow(0);
                 }
                 break;
         }
@@ -411,13 +476,69 @@ public class Game implements Runnable{
 //        ss.resetSound(blockPlace);
     }
 
-    private void lockPieceInPlay() {
-        gameBoard.setPieceRow(0);
-        gameBoard.checkLineClear();
+    private synchronized void lockPieceInPlay() {
+        rowsCleared = gameBoard.getLineClear();
+        gameBoard.applyLightFade(pieceInPlay);
         piecePlaced();
         pieceInPlay = null;
-//        System.out.println("Piece In Play Locked!");
+        gameBoard.setPieceRow(1);
     }
+
+    private synchronized void calculateScore() {
+        currentMultiplier = scoreMultiplier.getCurrentMultiplier();
+        int linePoints = 0;
+        int heightAdded = 0;
+
+        if (rowsCleared == 4 && (previousClear == TETRIS || previousClear == BACK_TO_BACK_TETRIS)) {
+            linePoints += BACK_TO_BACK_TETRIS;
+            heightAdded = 400;
+            previousClear = BACK_TO_BACK_TETRIS;
+        } else if (rowsCleared == 4 && (previousClear == LINE_CLEAR || previousClear == INIT_CLEAR)) {
+            linePoints += TETRIS;
+            heightAdded = 200;
+            previousClear = TETRIS;
+        } else if (rowsCleared != 0){
+            linePoints += LINE_CLEAR * rowsCleared;
+            heightAdded = 100;
+            previousClear = LINE_CLEAR;
+        }
+
+        scoreMultiplier.addToMultiplierHeight(heightAdded);
+
+        if (linePoints != 0) {
+            System.out.println("");
+            System.out.println("linePoints:    " + linePoints);
+            System.out.println("rowsCleared:   " + rowsCleared);
+            System.out.println("previousClear: " + previousClear);
+            System.out.println("heightAdded:   " + heightAdded);
+        }
+
+        int totalScore = (int) ((softPoints + fastPoints + linePoints) * currentMultiplier);
+        score.addToScore(totalScore);
+        softPoints -= softPoints;
+        fastPoints -= fastPoints;
+        rowsCleared = 0;
+
+    }
+
+    private synchronized void updateGameSpeed() {
+        currentLevel = level.getCurrentLevel();
+        if (currentLevel == 20) {
+            currentGameSpeed = LEVEL_20;
+        } else {
+            currentGameSpeed = LEVEL_1 - ((currentLevel - 1) * 3);
+        }
+    }
+
+    private synchronized void addToLines() {
+        lines.addLines(rowsCleared);
+        currentLevel = level.getCurrentLevel();
+        if (lines.getNewNumLines() - (currentLevel * 10) >= 0) {
+            level.increaseLevel();
+            currentLevel = level.getCurrentLevel();
+        }
+    }
+
 
     // covers the main game loop
     @Override
@@ -426,7 +547,7 @@ public class Game implements Runnable{
         double previous = System.currentTimeMillis();
         double timer = System.currentTimeMillis();
         double lag = 0;
-        int frames = 0;
+        int numLoopRuns = 0;
         int updates = 0;
 
         while (keepRunning) {
@@ -442,21 +563,15 @@ public class Game implements Runnable{
                 lag -= MS_PER_UPDATE;
             }
 
-            //System.out.println(lag / MS_PER_UPDATE);
 
             //frame.getCurrentPanel().repaint();
-            //render();
-            frames++;
+            numLoopRuns++;
 
             while (System.currentTimeMillis() - timer > 1000) {
                 timer += 1000;
-                frame.setTitle("Tetris | updates: " + updates + " | fps: " + frames);
+                frame.setTitle("Tetris | updates: " + updates + " | loopRuns: " + numLoopRuns);
                 updates = 0;
-                frames = 0;
-//                if (pieceInPlay != null) {
-//                    gameBoard.clearBoard();
-//                    pieceInPlay.rotateRight();
-//                }
+                numLoopRuns = 0;
             }
 
         }

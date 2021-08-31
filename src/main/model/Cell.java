@@ -8,8 +8,8 @@ public class Cell extends Entity{
     public static final int SIZE = 30;
     private int colPos, rowPos;
     private Block block;
-    private float alpha;
-    private boolean isGhost, flip, canMove;
+    private float alpha, lightFade;
+    private boolean isGhost, flip, canMove, isLit;
     private Board board;
 
     public Cell(int rowPos, int colPos, int actualX, int actualY, Board board){
@@ -23,6 +23,8 @@ public class Cell extends Entity{
         isGhost = false;
         flip = false;
         canMove = false;
+        isLit = false;
+        lightFade = 0;
 
         this.block = null;
         this.board = board;
@@ -72,6 +74,12 @@ public class Cell extends Entity{
 //                flip = false;
 //            }
 //        }
+        if (isLit) {
+            lightFade -= 0.05;
+            if (lightFade < 0) {
+                isLit = false;
+            }
+        }
 
         if (isFilled()) {
 //            block.setBoard(board);
@@ -92,15 +100,25 @@ public class Cell extends Entity{
 
     @Override
     public void draw(Graphics2D g2) {
-        Rectangle2D rect = new Rectangle2D.Double(actualX + changeX, actualY, SIZE, SIZE);
+        if (rowPos == 0 && board.getNumRows() == 21) {
+            return;
+        }
+        Rectangle2D rect = new Rectangle2D.Double(actualX + changeX, actualY + changeY, SIZE, SIZE);
         AlphaComposite alphaCom;
-        if (!isFilled()) {
+        if (isFilled()) {
+            block.draw(g2);
+        } else if (isLit) {
+            AlphaComposite pastAlpha = (AlphaComposite) g2.getComposite();
+            g2.setColor(Color.WHITE);
+            alphaCom = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, lightFade);
+            g2.setComposite(alphaCom);
+            g2.fill(rect);
+            g2.setComposite(pastAlpha);
+        } else {
             g2.setColor(Color.BLACK);
             alphaCom = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
             g2.setComposite(alphaCom);
             g2.fill(rect);
-        } else {
-            block.draw(g2);
         }
 
         g2.setColor(Color.WHITE);
@@ -144,6 +162,7 @@ public class Cell extends Entity{
             block.removeCell();
         }
         this.block = null;
+
     }
 
     public void setAlpha(float alpha) {
@@ -160,6 +179,18 @@ public class Cell extends Entity{
 
     public void setCanMove(boolean canMove) {
         this.canMove = canMove;
+    }
+
+    public void setIsLit(boolean isLit) {
+        this.isLit = isLit;
+    }
+
+    public boolean isLit() {
+        return isLit;
+    }
+
+    public void setLightFade(float fade) {
+        lightFade = fade;
     }
 
     @Override

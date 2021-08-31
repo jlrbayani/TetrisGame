@@ -243,6 +243,9 @@ public class TetrisPiece extends Entity{
 
 //            System.out.println("rowDiff: " + rowDiff);
 //            System.out.println("colDiff: " + colDiff);
+            if (actualMatrix.size() == 0) {
+                return;
+            }
             Cell oldActual = actualMatrix.get(0);
             actualMatrix.remove(0);
 //            int currentCellIndex = (oldActual.getRowPos() * board.getNumCols() + oldActual.getColPos());
