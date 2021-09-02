@@ -214,7 +214,6 @@ public class Game implements Runnable{
 
     private synchronized void initStartingEntities() {
         gameBoard = new Board(GAME_COLS, GAME_ROWS, 310, 20, 1, 0);
-        gameBoard.setCanMove(true);
         entityList.add(gameBoard);
 
         nextBoard = new Board(NEXT_COLS, NEXT_ROWS, 750, 100, 1, 0);
@@ -355,12 +354,23 @@ public class Game implements Runnable{
 //            System.out.println("Move Left!");
 //            gameBoard.shiftPieceCol(-1, pieceInPlay);
             gameBoard.movePieceSide(pieceInPlay, -1);
+            if (pieceInPlay != null) {
+                if (pieceInPlay.getLeftEdgeCol() == 0) {
+                    gameBoard.setCanMoveLeft(true);
+                }
+            }
             keysNumCall[0]--;
         }
         while (keysNumCall[1] > 0) {
 //            System.out.println("Move Right!");
 //            gameBoard.shiftPieceCol(1, pieceInPlay);
             gameBoard.movePieceSide(pieceInPlay, 1);
+            if (pieceInPlay != null) {
+                if (pieceInPlay.getRightEdgeCol() == gameBoard.getNumCols() - 1) {
+                    gameBoard.setCanMoveRight(true);
+                }
+            }
+
             keysNumCall[1]--;
         }
         while (keysNumCall[2] > 0) {
@@ -427,6 +437,7 @@ public class Game implements Runnable{
                     int numCellsDropped = gameBoard.fastDropPiece(pieceInPlay);
                     fastPoints += numCellsDropped * FAST_DROP_PER_CELL;
                     scoreMultiplier.addToMultiplierHeight(100);
+                    gameBoard.setCanMoveVertically(true);
                     lockPieceInPlay();
                     keysSinglePress[0] = false;
                 }
@@ -451,15 +462,12 @@ public class Game implements Runnable{
                     gameBoard.setPieceRow(1);
                     if (heldPiece == null) {
                         heldPiece = pieceInPlay;
-                        heldPiece.setPieceToMove(false);
                         getNewPieceInPlay();
                     } else {
                         TetrisPiece swap = heldPiece;
                         heldPiece = pieceInPlay;
-                        heldPiece.setPieceToMove(false);
                         pieceInPlay = swap;
                         gameBoard.initPieceToBoard(pieceInPlay);
-                        pieceInPlay.setPieceToMove(true);
                     }
                     holdBoard.clearBoard();
                     canSwap = false;
@@ -505,13 +513,13 @@ public class Game implements Runnable{
 
         scoreMultiplier.addToMultiplierHeight(heightAdded);
 
-        if (linePoints != 0) {
-            System.out.println("");
-            System.out.println("linePoints:    " + linePoints);
-            System.out.println("rowsCleared:   " + rowsCleared);
-            System.out.println("previousClear: " + previousClear);
-            System.out.println("heightAdded:   " + heightAdded);
-        }
+//        if (linePoints != 0) {
+//            System.out.println("");
+//            System.out.println("linePoints:    " + linePoints);
+//            System.out.println("rowsCleared:   " + rowsCleared);
+//            System.out.println("previousClear: " + previousClear);
+//            System.out.println("heightAdded:   " + heightAdded);
+//        }
 
         int totalScore = (int) ((softPoints + fastPoints + linePoints) * currentMultiplier);
         score.addToScore(totalScore);
@@ -537,6 +545,10 @@ public class Game implements Runnable{
             level.increaseLevel();
             currentLevel = level.getCurrentLevel();
         }
+    }
+
+    private void showGameOverScreen() {
+        frame.setTitle("Tetris");
     }
 
 
@@ -581,5 +593,7 @@ public class Game implements Runnable{
         } catch (InterruptedException e){
             e.printStackTrace();
         }
+
+        showGameOverScreen();
     }
 }

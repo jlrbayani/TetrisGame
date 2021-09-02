@@ -9,7 +9,7 @@ public class Cell extends Entity{
     private int colPos, rowPos;
     private Block block;
     private float alpha, lightFade;
-    private boolean isGhost, flip, canMove, isLit;
+    private boolean isGhost, flip, flipRight, flipLeft, canMoveVertically, canMoveRight, canMoveLeft, isLit;
     private Board board;
 
     public Cell(int rowPos, int colPos, int actualX, int actualY, Board board){
@@ -19,10 +19,15 @@ public class Cell extends Entity{
         this.actualY = actualY;
         this.alpha = 1;
 
-        velocityX = 2;
+        velocityX = 1;
+        velocityY = 2;
         isGhost = false;
         flip = false;
-        canMove = false;
+        flipRight = false;
+        flipLeft = false;
+        canMoveVertically = false;
+        canMoveLeft = false;
+        canMoveRight = false;
         isLit = false;
         lightFade = 0;
 
@@ -46,7 +51,7 @@ public class Cell extends Entity{
     }
 
     public boolean getCanMove() {
-        return canMove;
+        return canMoveVertically;
     }
 
     @Override
@@ -59,24 +64,61 @@ public class Cell extends Entity{
 
     @Override
     public void update() {
-//        if (canMove) {
-//            if (!flip) {
-//                changeX += (velocityX * extrapolate);
-//            }
-//            if (flip) {
-//                changeX -= (velocityX * extrapolate);
-//            }
-//
-//            if (changeX > 100) {
-//                flip = true;
-//            }
-//            if (changeX < 1) {
-//                flip = false;
-//            }
-//        }
+        if (canMoveVertically) {
+            if (!flip) {
+                changeY += (velocityY * extrapolate);
+            }
+            if (flip) {
+                changeY -= (velocityY * extrapolate);
+            }
+
+            if (changeY > 10) {
+                flip = true;
+            }
+            if (changeY < 1) {
+                flip = false;
+                canMoveVertically = false;
+            }
+//            System.out.println("changeY: " + changeY);
+        }
+
+        if (canMoveRight) {
+            if (!flipRight) {
+                changeX += (velocityX * extrapolate);
+            }
+            if (flipRight) {
+                changeX -= (velocityX * extrapolate);
+            }
+//            System.out.println("canMoveRight changeX:           " + changeX);
+//            System.out.println("canMoveRight changeX + actualX: " + (actualX + changeX));
+            if (changeX > 5) {
+                flipRight = true;
+            }
+            if (changeX < 1) {
+                flipRight = false;
+                canMoveRight = false;
+            }
+        } else if (canMoveLeft) {
+            if (!flipLeft) {
+                changeX -= (velocityX * extrapolate);
+            }
+            if (flipLeft) {
+                changeX += (velocityX * extrapolate);
+            }
+//            System.out.println("canMoveLeft changeX: " + changeX);
+            if (changeX < -5) {
+                flipLeft = true;
+            }
+            if (changeX > 0) {
+                flipLeft = false;
+                canMoveLeft = false;
+            }
+        }
+
         if (isLit) {
             lightFade -= 0.05;
             if (lightFade < 0) {
+                lightFade = 0;
                 isLit = false;
             }
         }
@@ -165,6 +207,10 @@ public class Cell extends Entity{
 
     }
 
+    public boolean canMoveVertically() {
+        return canMoveVertically;
+    }
+
     public void setAlpha(float alpha) {
         this.alpha = alpha;
     }
@@ -177,8 +223,16 @@ public class Cell extends Entity{
         return block;
     }
 
-    public void setCanMove(boolean canMove) {
-        this.canMove = canMove;
+    public void setCanMoveVertically(boolean canMoveVertically) {
+        this.canMoveVertically = canMoveVertically;
+    }
+
+    public void setCanMoveRight(boolean canMoveRight) {
+        this.canMoveRight = canMoveRight;
+    }
+
+    public void setCanMoveLeft(boolean canMoveLeft) {
+        this.canMoveLeft = canMoveLeft;
     }
 
     public void setIsLit(boolean isLit) {

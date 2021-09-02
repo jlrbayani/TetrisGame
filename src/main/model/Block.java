@@ -12,18 +12,8 @@ public class Block extends Entity{
     private BufferedImage img;
     private Cell cell;
     private TetrisPiece.Type blockType;
-    private boolean isLocked, flip, move;
+    private boolean isLocked;
     private Board board;
-    private int moveDownCounter;
-
-    public enum Dir {
-        DOWN, LEFT, RIGHT
-    }
-
-    public Block(TetrisPiece.Type blockType, int rowPos, int colPos, int offsetX, int offsetY) {
-
-    }
-
 
     public Block(TetrisPiece.Type blockType, Cell cell) {
         this.cell = cell;
@@ -33,11 +23,8 @@ public class Block extends Entity{
         this.colPos = cell.getColPos();
         this.blockType = blockType;
         this.isLocked = true;
-        this.flip = false;
-        this.move = false;
         this.velocityX = cell.velocityX;
         this.velocityY = cell.velocityY;
-        this.moveDownCounter = 1;
 
         setBlockImg(this.blockType);
     }
@@ -91,9 +78,6 @@ public class Block extends Entity{
     public void lockBlock(Cell c) {
         if (c == null) {
             return;
-//            System.out.println("Cell is null: ");
-//            System.out.println("Block row: " + getRowPos());
-//            System.out.println("Block col: " + getColPos());
         }
         isLocked = true;
         cell = c;
@@ -103,7 +87,6 @@ public class Block extends Entity{
         this.changeY = cell.getChangeY();
         this.rowPos = c.getRowPos();
         this.colPos = c.getColPos();
-        move = c.getCanMove();
     }
 
     public int getColPos() {
@@ -116,10 +99,6 @@ public class Block extends Entity{
 
     public void setBoard(Board board) {
         this.board = board;
-    }
-
-    public void setMove(boolean move) {
-        this.move = move;
     }
 
     public void moveBlockDown() {
@@ -169,22 +148,24 @@ public class Block extends Entity{
 //            setChangeX(cell.getChangeX());
 //            setChangeY(cell.getChangeY());
 
+//            if (cell.isCanMove()) {
+//                if (!flip) {
+//                    changeY += (velocityX * extrapolate);
+//                }
+//                if (flip) {
+//                    changeY -= (velocityX * extrapolate);
+//                }
+//
+//                if (changeX > 60) {
+//                    flip = true;
+//                }
+//                if (changeX < 1) {
+//                    flip = false;
+//                }
+//            }
             lockBlock(cell);
+
         }
-
-//        if (!flip) {
-//            changeX += (velocityX * extrapolate);
-//        }
-//        if (flip) {
-//            changeX -= (velocityX * extrapolate);
-//        }
-
-//        if (changeX > 200) {
-//            flip = true;
-//        }
-//        if (changeX < 1) {
-//            flip = false;
-//        }
 
         //System.out.println("Move Counter: " + moveDownCounter);
 //        moveDownCounter++;
@@ -201,7 +182,7 @@ public class Block extends Entity{
 //            System.out.println( t + ": " +  (int)(actualX + changeX));
 //        }
 
-        g2.drawImage(img, (int) (actualX + changeX), actualY, null);
+        g2.drawImage(img, (int) (actualX + changeX), (int) (actualY + changeY), null);
 
     }
 

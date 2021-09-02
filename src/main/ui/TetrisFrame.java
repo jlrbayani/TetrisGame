@@ -1,7 +1,16 @@
 package main.ui;
 
+import main.model.Score;
+import main.persistence.JsonReader;
+import main.persistence.JsonWriter;
+import org.json.JSONException;
+
 import javax.swing.*;
 import java.awt.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 
 public class TetrisFrame extends JFrame {
     private JPanel cards;
@@ -14,9 +23,15 @@ public class TetrisFrame extends JFrame {
     private CardLayout cardLayout;
     private JPanel currentPanel, previousPanel;
     private SoundSystem ss;
+    private ArrayList<Score> highScores;
+    private JsonReader jsonReader;
+    private JsonWriter jsonWriter;
 
     public static final int HEIGHT = 720;
     public static final int WIDTH = 920;
+
+    public static final String HIGH_SCORES = "./data/highScores.json";
+
 
     public TetrisFrame() {
         initFrame();
@@ -29,6 +44,7 @@ public class TetrisFrame extends JFrame {
 
         ss = new SoundSystem();
 
+        initHighScores();
         initCards();
         showMenu();
 
@@ -41,6 +57,7 @@ public class TetrisFrame extends JFrame {
         // ensures that a listener keeps track of when the frame is closed to make sure the thread pool in sound system will eventually be safely closed
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent e) {
+                saveHighScores();
                 closeSoundSystem();
                 System.exit(0);
             }
@@ -82,6 +99,58 @@ public class TetrisFrame extends JFrame {
         previousPanel = currentPanel;
         currentPanel = gamePanel;
         cardLayout.show(cards, GamePanel.GAMEPANEL);
+    }
+
+    public ArrayList<Score> getHighScores() {
+        return highScores;
+    }
+
+    public boolean addToHighScores(Score score) {
+        boolean added = false;
+        if (highScores.size() < 10) {
+            highScores.add(score);
+            added = true;
+        } else {
+            for (Score s: highScores) {
+                if (s.getScoreNow() < score.getScoreNow()) {
+                    highScores.remove(highScores.size() - 1);
+                    highScores.add(score);
+                    added = true;
+                    break;
+                }
+            }
+        }
+
+        if (added) {
+            Collections.sort(highScores);
+        }
+
+        return added;
+    }
+
+    private void initHighScores() {
+        highScores = new ArrayList<>();
+        jsonReader = new JsonReader(HIGH_SCORES);
+        try {
+            highScores = jsonReader.read();
+            System.out.println("Successfully read HighScores from: " + HIGH_SCORES);
+        } catch (IOException e) {
+            System.out.println("Unable to read from file: " + HIGH_SCORES);
+        } catch (JSONException e) {
+            System.out.println("No saved High Scores yet!");
+        }
+    }
+
+    private void saveHighScores() {
+        jsonWriter = new JsonWriter(HIGH_SCORES);
+        try {
+            jsonWriter.open();
+            jsonWriter.write(highScores);
+            jsonWriter.close();
+            System.out.println("\nSuccessfully saved HighScores to: " + HIGH_SCORES);
+        } catch (FileNotFoundException e) {
+            System.out.println("\nUnable to write to file: " + HIGH_SCORES);
+        }
     }
 
     private void initCards() {

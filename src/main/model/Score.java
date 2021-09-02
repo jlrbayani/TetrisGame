@@ -1,9 +1,12 @@
 package main.model;
 
+import main.persistence.Writable;
+import org.json.JSONObject;
+
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
-public class Score extends Entity{
+public class Score extends Entity implements Writable, Comparable<Score> {
 
     private String name;
     private int currentScore, newScore;
@@ -13,6 +16,12 @@ public class Score extends Entity{
         this.actualY = actualY;
         this.currentScore = 0;
         this.newScore = 0;
+    }
+
+    public Score(String name, int newScore) {
+        this.name = name;
+        this.newScore = newScore;
+        this.currentScore = 0;
     }
 
     public void setName(String name) {
@@ -74,5 +83,19 @@ public class Score extends Entity{
         g2.setColor(Color.WHITE);
         g2.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 30));
         g2.drawString(currentScore + "", actualX, actualY + 40);
+    }
+
+    @Override
+    public JSONObject toJson() {
+        JSONObject json = new JSONObject();
+        json.put("name", name);
+        json.put("newScore", newScore);
+
+        return json;
+    }
+
+    @Override
+    public int compareTo(Score s) {
+        return s.newScore - newScore;
     }
 }

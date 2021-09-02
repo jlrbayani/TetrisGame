@@ -1177,14 +1177,36 @@ public class Board extends Entity {
 //        }
     }
 
-    public void setCanMove(boolean canMove) {
+    public void setCanMoveVertically(boolean canMove) {
         this.canMove = canMove;
-        setCellsCanMove();
+        setCellsCanMoveVertically();
     }
 
-    public void setCellsCanMove() {
+    public void setCanMoveRight(boolean canMove) {
+        this.canMove = canMove;
+        setCellsCanMoveRight();
+    }
+
+    public void setCanMoveLeft(boolean canMove) {
+        this.canMove = canMove;
+        setCellsCanMoveLeft();
+    }
+
+    public void setCellsCanMoveVertically() {
         for (Cell c: boardList) {
-            c.setCanMove(canMove);
+            c.setCanMoveVertically(canMove);
+        }
+    }
+
+    public void setCellsCanMoveRight() {
+        for (Cell c: boardList) {
+            c.setCanMoveRight(canMove);
+        }
+    }
+
+    public void setCellsCanMoveLeft() {
+        for (Cell c: boardList) {
+            c.setCanMoveLeft(canMove);
         }
     }
 

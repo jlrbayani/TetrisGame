@@ -141,16 +141,6 @@ public class TetrisPiece extends Entity{
         return originalMatrix;
     }
 
-    public void setPieceToMove(boolean move) {
-//        for (Cell c: actualMatrix) {
-//            System.out.println("Row: " + c.getRowPos() + " Col: " + c.getColPos());
-//            //c.getBlock().setMove(move);
-//        }
-        for (Block b: blocks) {
-            b.setMove(move);
-        }
-    }
-
     public ArrayList<Cell> getActualMatrix() {
         return actualMatrix;
     }
@@ -165,6 +155,30 @@ public class TetrisPiece extends Entity{
 
     public void addToBlockMatrix(Block b) {
         blocks.add(b);
+    }
+
+    public int getRightEdgeCol() {
+        int edge = 0;
+
+        for (Cell c: actualMatrix) {
+            if (c.getColPos() > edge) {
+                edge = c.getColPos();
+            }
+        }
+
+        return edge;
+    }
+
+    public int getLeftEdgeCol() {
+        int edge = Integer.MAX_VALUE;
+
+        for (Cell c: actualMatrix) {
+            if (c.getColPos() < edge) {
+                edge = c.getColPos();
+            }
+        }
+
+        return edge;
     }
 
 
