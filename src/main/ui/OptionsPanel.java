@@ -1,8 +1,12 @@
 package main.ui;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 public class OptionsPanel extends JPanel {
     final static String OPTIONSPANEL = "optionsPanel";
@@ -23,6 +27,7 @@ public class OptionsPanel extends JPanel {
     private StandardButton soundsBackButton;
     private ImageIcon mutedIcon, unmutedIcon;
     private JButton muteButton;
+    private BufferedImage controlsImg;
 
     public OptionsPanel(TetrisFrame frame) {
         super();
@@ -78,7 +83,21 @@ public class OptionsPanel extends JPanel {
         };
         optionsCards.add(soundSettings, SOUNDSETTINGS);
 
+        controlsImg = null;
+        try {
+            controlsImg = ImageIO.read(new File("resources/icons/controls.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         controls = new PanelWithActList() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g;
+                g2.drawImage(controlsImg, 170, 50, null);
+            }
+
             @Override
             public void actionPerformed(ActionEvent e) {
                 Object src = e.getSource();

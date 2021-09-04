@@ -41,7 +41,7 @@ public class Game implements Runnable{
     private Score score;
     private Level level;
     private Lines lines;
-    private boolean canSwap, addToNumTries;
+    private boolean canSwap;
 
     private TetrisPiece pieceInPlay;
     private TetrisPiece heldPiece;
@@ -50,7 +50,7 @@ public class Game implements Runnable{
     private boolean[] keysHeldDown, keysSinglePress;
     private int[] keysNumCall;
     private ArrayList<Entity> entityList;
-    private Sound blockPlace, theme;
+    private Sound blockPlace, theme, rotate;
 
     private int numFall, processInput, incrementalUpdate, numTries;
     private int rowsCleared, currentLevel, softPoints, fastPoints, currentMultiplierMeter, previousClear;
@@ -67,7 +67,6 @@ public class Game implements Runnable{
         incrementalUpdate = 1;
         processInput = 0;
         numTries = 0;
-        addToNumTries = false;
         previousClear = INIT_CLEAR;
 
         // game stats initialization
@@ -92,12 +91,16 @@ public class Game implements Runnable{
     }
 
     private void initSounds() {
-        theme = new Sound("resources/sounds/TetrisTheme.wav", "theme", ss.getCurrentVolume());
+        theme = new Sound("/sounds/TetrisTheme.wav", "theme", ss.getCurrentVolume());
         theme.setKeepLooping(true);
         ss.addToSounds(theme);
 
-        blockPlace = new Sound("resources/sounds/BlockPlacementSound.wav", "blockPlaced", ss.getCurrentVolume());
+        blockPlace = new Sound("/sounds/BlockPlacementSound.wav", "blockPlaced", ss.getCurrentVolume());
         ss.addToSounds(blockPlace);
+
+        // rotate click found from https://mixkit.co/
+        rotate = new Sound("/sounds/rotateClick.wav", "rotate", ss.getCurrentVolume());
+        ss.addToSounds(rotate);
     }
 
 
@@ -111,7 +114,6 @@ public class Game implements Runnable{
         }
     }
 
-    // TODO: implement gameOver Screen
     public synchronized void update() {
         if (entityList.contains(cdt) && cdt.getIsFinished() && isPaused) {
             resumeGame();
@@ -182,7 +184,7 @@ public class Game implements Runnable{
         System.out.println("Resuming game!");
         ss.resetSounds();
         ss.resumeFromPause();
-//        ss.playSound(theme.getSoundName());
+        ss.playSound(theme.getSoundName());
         frame.getCurrentPanel().requestFocusInWindow();
     }
 
@@ -204,6 +206,8 @@ public class Game implements Runnable{
 
     public synchronized void endGame() {
         keepRunning = false;
+        ss.resetSounds();
+        ss.clearAllSounds();
     }
 
     public synchronized void showGameOver() {
@@ -353,7 +357,9 @@ public class Game implements Runnable{
         while (keysNumCall[0] > 0) {
 //            System.out.println("Move Left!");
 //            gameBoard.shiftPieceCol(-1, pieceInPlay);
-            gameBoard.movePieceSide(pieceInPlay, -1);
+            if (gameBoard.movePieceSide(pieceInPlay, -1)) {
+                playRotateClick();
+            }
             if (pieceInPlay != null) {
                 if (pieceInPlay.getLeftEdgeCol() == 0) {
                     gameBoard.setCanMoveLeft(true);
@@ -364,7 +370,9 @@ public class Game implements Runnable{
         while (keysNumCall[1] > 0) {
 //            System.out.println("Move Right!");
 //            gameBoard.shiftPieceCol(1, pieceInPlay);
-            gameBoard.movePieceSide(pieceInPlay, 1);
+            if (gameBoard.movePieceSide(pieceInPlay, 1)) {
+                playRotateClick();
+            }
             if (pieceInPlay != null) {
                 if (pieceInPlay.getRightEdgeCol() == gameBoard.getNumCols() - 1) {
                     gameBoard.setCanMoveRight(true);
@@ -379,7 +387,9 @@ public class Game implements Runnable{
 //                lockPieceInPlay();
 //            }
             softPoints += SLOW_DROP_PER_CELL;
-            if (!gameBoard.movePieceDown(pieceInPlay)) {
+            if (gameBoard.movePieceDown(pieceInPlay)) {
+                playRotateClick();
+            } else {
                 lockPieceInPlay();
             }
             keysNumCall[2]--;
@@ -444,19 +454,22 @@ public class Game implements Runnable{
                 break;
             case KeyEvent.VK_UP:
                 if (keysSinglePress[1] && pieceInPlay != null) {
-                    gameBoard.rotatePieceInPlay(pieceInPlay, true);
+                    if (gameBoard.rotatePieceInPlay(pieceInPlay, true)) {
+                        playRotateClick();
+                    }
                     keysSinglePress[1] = false;
                 }
                 break;
             case KeyEvent.VK_Z:
                 if (keysSinglePress[2] && pieceInPlay != null) {
-                    gameBoard.rotatePieceInPlay(pieceInPlay, false);
+                    if (gameBoard.rotatePieceInPlay(pieceInPlay, false)) {
+                        playRotateClick();
+                    }
                     keysSinglePress[2] = false;
                 }
                 break;
             case KeyEvent.VK_C:
                 if (canSwap && pieceInPlay != null) {
-//                    System.out.println("Swapping!");
                     gameBoard.clearCells(pieceInPlay.getActualMatrix());
                     pieceInPlay.resetRotation();
                     gameBoard.setPieceRow(1);
@@ -478,10 +491,15 @@ public class Game implements Runnable{
         processInput();
     }
 
+    private void playRotateClick() {
+        ss.resetSound(rotate);
+        ss.playSound(rotate.getSoundName());
+    }
+
     public void piecePlaced() {
         canSwap = true;
-//        ss.playSound(blockPlace.getSoundName());
-//        ss.resetSound(blockPlace);
+        ss.resetSound(blockPlace);
+        ss.playSound(blockPlace.getSoundName());
     }
 
     private synchronized void lockPieceInPlay() {
@@ -549,6 +567,7 @@ public class Game implements Runnable{
 
     private void showGameOverScreen() {
         frame.setTitle("Tetris");
+        frame.showGameOverPanel(score);
     }
 
 
@@ -588,12 +607,13 @@ public class Game implements Runnable{
 
         }
 
+        showGameOverScreen();
+
         try {
             this.gameThread.join();
         } catch (InterruptedException e){
             e.printStackTrace();
         }
 
-        showGameOverScreen();
     }
 }

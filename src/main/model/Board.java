@@ -320,9 +320,9 @@ public class Board extends Entity {
         }
     }
 
-    public synchronized void rotatePieceInPlay(TetrisPiece tp, boolean rotateRight) {
+    public synchronized boolean rotatePieceInPlay(TetrisPiece tp, boolean rotateRight) {
         if (tp.getType() == TetrisPiece.Type.O) {
-            return;
+            return true;
         }
 //        System.out.println("Before rotate: ");
 //        for (Cell c: tp.getActualMatrix()) {
@@ -360,13 +360,14 @@ public class Board extends Entity {
 //            tp.rotateRight();
             tp.setRotation(tester.getRotation());
             addPieceToBoard(tp, moveTo);
+            return true;
         } else {
             for (int numTries = 0; numTries < 4; numTries++) {
                 moveTo = applyWallKick(tp, tester, numTries, rotateRight);
                 if (checkPieceMove(tp, moveTo) && !checkRowOverflow(tp, moveTo)) {
                     tp.setRotation(tester.getRotation());
                     addPieceToBoard(tp, moveTo);
-                    break;
+                    return true;
                 }
             }
         }
@@ -379,6 +380,7 @@ public class Board extends Entity {
 //        System.out.println("");
 //        System.out.println(tp.getRotation());
 
+        return false;
     }
 
     public ArrayList<Cell> applyEdgeKickI(TetrisPiece tp , ArrayList<Cell> moveTo) {
@@ -485,12 +487,14 @@ public class Board extends Entity {
         return moveTo;
     }
 
-    public synchronized void movePieceSide(TetrisPiece tp, int move) {
+    public synchronized boolean movePieceSide(TetrisPiece tp, int move) {
         ArrayList<Cell> moveTo = getMoveTo(tp, move, 0);
         if (checkPieceMove(tp, moveTo)) {
             addPieceToBoard(tp, moveTo);
+            return true;
         }
 
+        return false;
     }
 
     public synchronized boolean movePieceDown(TetrisPiece tp) {

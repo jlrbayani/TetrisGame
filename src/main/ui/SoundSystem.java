@@ -39,6 +39,10 @@ public class SoundSystem {
         return false;
     }
 
+    public void clearAllSounds() {
+        soundList = new ArrayList<>();
+    }
+
     public void addToSounds(Sound s) {
         if (!soundList.contains(s)) {
             soundList.add(s);

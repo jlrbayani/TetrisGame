@@ -21,7 +21,11 @@ public class Score extends Entity implements Writable, Comparable<Score> {
     public Score(String name, int newScore) {
         this.name = name;
         this.newScore = newScore;
-        this.currentScore = 0;
+        this.currentScore = newScore;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public void setName(String name) {
@@ -88,6 +92,9 @@ public class Score extends Entity implements Writable, Comparable<Score> {
     @Override
     public JSONObject toJson() {
         JSONObject json = new JSONObject();
+        if (name == null) {
+            name = "";
+        }
         json.put("name", name);
         json.put("newScore", newScore);
 

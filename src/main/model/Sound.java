@@ -1,8 +1,8 @@
 package main.model;
 
 import javax.sound.sampled.*;
-import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 public class Sound implements Runnable{
 
@@ -24,12 +24,12 @@ public class Sound implements Runnable{
     }
 
     public void initClip() {
-        File file = new File(fileRef);
+        URL url = Sound.class.getResource(fileRef);
         AudioInputStream audioInputStream;
         this.clip = null;
 
         try {
-            audioInputStream = AudioSystem.getAudioInputStream(file);
+            audioInputStream = AudioSystem.getAudioInputStream(url);
             try {
                 clip = AudioSystem.getClip();
                 clip.open(audioInputStream);
