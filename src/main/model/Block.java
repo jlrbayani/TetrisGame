@@ -3,8 +3,8 @@ package main.model;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 public class Block extends Entity{
 
@@ -56,7 +56,8 @@ public class Block extends Entity{
         }
 
         try {
-            img = ImageIO.read(new File("resources/blocks/block" + s +".png"));
+            URL urlBlock = getClass().getResource("/blocks/block" + s +".png");
+            img = ImageIO.read(urlBlock);
         } catch (IOException e) {
             e.printStackTrace();
         }

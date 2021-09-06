@@ -4,6 +4,7 @@ import main.model.Score;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -23,7 +24,13 @@ public class JsonReader {
     // EFFECTS: reads high scores from file and returns it;
     // throws IOException if an error occurs reading data from file
     public ArrayList<Score> read() throws IOException {
-        String jsonData = readFile(source);
+//        URL url = JsonReader.ge
+//        String path = getClass().getResource(source).getPath();
+        File jarFile = new File(JsonReader.class.getProtectionDomain().getCodeSource().getLocation().getPath());
+        File file = new File(jarFile.getParent(), source);
+
+        System.out.println(file.getPath());
+        String jsonData = readFile(file.getPath());
         JSONObject jsonObject = new JSONObject(jsonData);
 
         return parseHighScores(jsonObject);

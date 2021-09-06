@@ -31,7 +31,7 @@ public class TetrisFrame extends JFrame {
     public static final int HEIGHT = 720;
     public static final int WIDTH = 920;
 
-    public static final String HIGH_SCORES = "./data/highScores.json";
+    public static final String HIGH_SCORES = "highScores.json";
 
 
     public TetrisFrame() {

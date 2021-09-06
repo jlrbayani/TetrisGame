@@ -4,7 +4,7 @@ import java.awt.*;
 
 public class CountDownTimer extends Entity {
 
-    private final int UPDATES_IN_SECOND = 110;
+    private final int UPDATES_IN_SECOND = 60;
     private int currentUpdates, timer;
     private boolean isFinished;
 

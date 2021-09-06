@@ -34,10 +34,10 @@ public class GamePanel extends JPanel implements ActionListener {
     // MODIFIES: this
     // EFFECTS: initializes all the main labels of the game panel
     private void initLabels() {
-        ImageIcon holdIcon = new ImageIcon("resources/icons/holdIcon.png");
+        ImageIcon holdIcon = new ImageIcon(getClass().getResource("/icons/holdIcon.png"));
         hold = new JLabel(holdIcon);
 
-        ImageIcon nextIcon = new ImageIcon("resources/icons/nextIcon.png");
+        ImageIcon nextIcon = new ImageIcon(getClass().getResource("/icons/nextIcon.png"));
         next = new JLabel(nextIcon);
 
     }
@@ -45,7 +45,7 @@ public class GamePanel extends JPanel implements ActionListener {
     // MODIFIES: this
     // EFFECTS: initializes all the main buttons of the game panel
     private void initButtons() {
-        ImageIcon pauseIcon = new ImageIcon("resources/icons/pauseButton.png");
+        ImageIcon pauseIcon = new ImageIcon( getClass().getResource("/icons/pauseButton.png"));
         pauseGame = new JButton(pauseIcon) {
             @Override
             public Dimension getPreferredSize() {
@@ -157,7 +157,7 @@ public class GamePanel extends JPanel implements ActionListener {
         centrePanel.repaint();
         rightPanel.repaint();
 
-        for (Entity e: game.getEntityList()) {
+        for (Entity e: game.getGameEntities()) {
             e.draw(g2);
         }
 

@@ -5,7 +5,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 
 public class OptionsPanel extends JPanel {
@@ -85,7 +84,7 @@ public class OptionsPanel extends JPanel {
 
         controlsImg = null;
         try {
-            controlsImg = ImageIO.read(new File("resources/icons/controls.png"));
+            controlsImg = ImageIO.read(getClass().getResource("/icons/controls.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -145,8 +144,8 @@ public class OptionsPanel extends JPanel {
         soundSettings.add(volumeControl);
         soundSettings.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        unmutedIcon = new ImageIcon("resources/icons/unmutedButton.png");
-        mutedIcon = new ImageIcon("resources/icons/mutedButton.png");
+        unmutedIcon = new ImageIcon (getClass().getResource("/icons/unmutedButton.png"));
+        mutedIcon = new ImageIcon(getClass().getResource("/icons/mutedButton.png"));
         muteButton = new JButton(unmutedIcon);
         muteButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         muteButton.setMaximumSize(new Dimension(unmutedIcon.getIconWidth(), unmutedIcon.getIconHeight()));

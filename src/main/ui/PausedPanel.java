@@ -25,17 +25,17 @@ public class PausedPanel extends JPanel implements ActionListener {
     }
 
     private void initButtons() {
-        ImageIcon resumeIcon = new ImageIcon("resources/icons/resumeButton.png");
+        ImageIcon resumeIcon = new ImageIcon( getClass().getResource("/icons/resumeButton.png"));
         resumeGame = new JButton(resumeIcon);
         resumeGame.setMaximumSize(new Dimension(resumeIcon.getIconWidth(), resumeIcon.getIconHeight()));
         resumeGame.addActionListener(this);
 
-        ImageIcon optionsIcon = new ImageIcon("resources/icons/optionsButton.png");
+        ImageIcon optionsIcon = new ImageIcon( getClass().getResource("/icons/optionsButton.png"));
         options = new JButton(optionsIcon);
         options.setMaximumSize(new Dimension(optionsIcon.getIconWidth(), optionsIcon.getIconHeight()));
         options.addActionListener(this);
 
-        ImageIcon quitIcon = new ImageIcon("resources/icons/quitButton.png");
+        ImageIcon quitIcon = new ImageIcon( getClass().getResource("/icons/quitButton.png"));
         quitGame = new JButton(quitIcon);
         quitGame.setMaximumSize(new Dimension(quitIcon.getIconWidth(), quitIcon.getIconHeight()));
         quitGame.addActionListener(this);
@@ -59,7 +59,7 @@ public class PausedPanel extends JPanel implements ActionListener {
         Object src = e.getSource();
         Game game = parent.getGame();
         if (src == quitGame) {
-            game.endGame();
+            game.quitGame();
             frame.showMenu();
             frame.setTitle("Tetris");
         } else if (src == resumeGame) {

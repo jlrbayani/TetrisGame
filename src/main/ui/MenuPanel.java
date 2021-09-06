@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.URL;
 
 public class MenuPanel extends JPanel implements ActionListener {
     final static String MENUPANEL = "menuPanel";
@@ -42,8 +43,9 @@ public class MenuPanel extends JPanel implements ActionListener {
     // EFFECTS: initializes all the main components of the menu panel
     private void initPanel() {
         setBackground(backgroundCol);
+        URL url = getClass().getResource("/icons/TetrisLogo.png");
+        ImageIcon tetrisLogo = new ImageIcon(url);
 
-        ImageIcon tetrisLogo = new ImageIcon("resources/icons/TetrisLogo.png");
         title = new JLabel(tetrisLogo);
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
 

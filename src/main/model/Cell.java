@@ -66,10 +66,10 @@ public class Cell extends Entity{
     public void update() {
         if (canMoveVertically) {
             if (!flip) {
-                changeY += (velocityY * extrapolate);
+                changeY += (velocityY);
             }
             if (flip) {
-                changeY -= (velocityY * extrapolate);
+                changeY -= (velocityY);
             }
 
             if (changeY > 10) {
@@ -79,15 +79,16 @@ public class Cell extends Entity{
                 flip = false;
                 canMoveVertically = false;
             }
+//            System.out.println("extrapolate: " + extrapolate);
 //            System.out.println("changeY: " + changeY);
         }
 
         if (canMoveRight) {
             if (!flipRight) {
-                changeX += (velocityX * extrapolate);
+                changeX += (velocityX);
             }
             if (flipRight) {
-                changeX -= (velocityX * extrapolate);
+                changeX -= (velocityX);
             }
 //            System.out.println("canMoveRight changeX:           " + changeX);
 //            System.out.println("canMoveRight changeX + actualX: " + (actualX + changeX));
@@ -100,10 +101,10 @@ public class Cell extends Entity{
             }
         } else if (canMoveLeft) {
             if (!flipLeft) {
-                changeX -= (velocityX * extrapolate);
+                changeX -= (velocityX);
             }
             if (flipLeft) {
-                changeX += (velocityX * extrapolate);
+                changeX += (velocityX);
             }
 //            System.out.println("canMoveLeft changeX: " + changeX);
             if (changeX < -5) {

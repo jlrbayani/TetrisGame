@@ -30,6 +30,7 @@ public class Game implements Runnable{
     private boolean keepRunning;
     private boolean isOver;
     private boolean isPaused;
+    private boolean isQuit;
     private TetrisFrame frame;
     private Thread gameThread;
     private CountDownTimer cdt;
@@ -49,7 +50,7 @@ public class Game implements Runnable{
 
     private boolean[] keysHeldDown, keysSinglePress;
     private int[] keysNumCall;
-    private ArrayList<Entity> entityList;
+    private ArrayList<Entity> gameEntities, backgroundEntities, foregroundEntities;
     private Sound blockPlace, theme, rotate;
 
     private int numFall, processInput, incrementalUpdate, numTries;
@@ -68,6 +69,7 @@ public class Game implements Runnable{
         processInput = 0;
         numTries = 0;
         previousClear = INIT_CLEAR;
+        isQuit = false;
 
         // game stats initialization
         rowsCleared = 0;
@@ -77,8 +79,10 @@ public class Game implements Runnable{
         fastPoints = 0;
         currentMultiplierMeter = 1;
 
+        initBackgroundEntities();
+
         // game entities initialization
-        entityList = new ArrayList<>();
+        gameEntities = new ArrayList<>();
         heldPiece = null;
         pieceInPlay = null;
         initStartingEntities();
@@ -109,25 +113,25 @@ public class Game implements Runnable{
     }
 
     public synchronized void setExtrapolation(double extrapolate) {
-        for (Entity e: entityList) {
+        for (Entity e: gameEntities) {
             e.setExtrapolation(extrapolate);
         }
     }
 
     public synchronized void update() {
-        if (entityList.contains(cdt) && cdt.getIsFinished() && isPaused) {
+        if (gameEntities.contains(cdt) && cdt.getIsFinished() && isPaused) {
             resumeGame();
             isPaused = false;
         }
 
-        for (Entity e: entityList) {
+        for (Entity e: gameEntities) {
             e.update();
         }
+
 
         if (isOver) {
             score.setCurrentScore(score.getScoreNow());
             updateGameOver();
-            return;
         } else {
             processInput();
             updateHeldPiece();
@@ -140,11 +144,6 @@ public class Game implements Runnable{
             calculateScore();
             updateGameSpeed();
         }
-
-       for (Entity e: entityList) {
-           e.update();
-       }
-
 
     }
 
@@ -165,11 +164,11 @@ public class Game implements Runnable{
     }
 
     public synchronized void pauseGame() {
-        if (entityList.contains(cdt) && cdt.getIsFinished()) {
-            entityList.remove(cdt);
+        if (gameEntities.contains(cdt) && cdt.getIsFinished()) {
+            gameEntities.remove(cdt);
         }
 
-        for (Entity e: entityList) {
+        for (Entity e: gameEntities) {
             e.pause();
         }
         System.out.println("Game Paused!");
@@ -178,7 +177,7 @@ public class Game implements Runnable{
     }
 
     public synchronized void resumeGame() {
-        for (Entity e: entityList) {
+        for (Entity e: gameEntities) {
             e.resume();
         }
         System.out.println("Resuming game!");
@@ -189,9 +188,9 @@ public class Game implements Runnable{
     }
 
     public synchronized void startCountDown() {
-        if (!entityList.contains(cdt)) {
+        if (!gameEntities.contains(cdt)) {
             cdt = new CountDownTimer(440, TetrisFrame.HEIGHT / 5);
-            entityList.add(cdt);
+            gameEntities.add(cdt);
         }
         isPaused = true;
     }
@@ -210,18 +209,25 @@ public class Game implements Runnable{
         ss.clearAllSounds();
     }
 
-    public synchronized void showGameOver() {
-        isOver = true;
+    public synchronized void quitGame() {
+        isQuit = true;
+        endGame();
+    }
 
-//        endGame();
+    public synchronized void startGameOverSequence() {
+        isOver = true;
+    }
+
+    private synchronized void initBackgroundEntities() {
+        backgroundEntities = new ArrayList<>();
     }
 
     private synchronized void initStartingEntities() {
         gameBoard = new Board(GAME_COLS, GAME_ROWS, 310, 20, 1, 0);
-        entityList.add(gameBoard);
+        gameEntities.add(gameBoard);
 
         nextBoard = new Board(NEXT_COLS, NEXT_ROWS, 750, 100, 1, 0);
-        entityList.add(nextBoard);
+        gameEntities.add(nextBoard);
         nextPieces = new LinkedList<>();
 
         for (int i = 0; i < 3; i++) {
@@ -229,19 +235,19 @@ public class Game implements Runnable{
         }
 
         holdBoard = new Board(HOLD_COLS, HOLD_ROWS, 50, 100, 1, 0);
-        entityList.add(holdBoard);
+        gameEntities.add(holdBoard);
 
         score = new Score(45, 300);
-        entityList.add(score);
+        gameEntities.add(score);
 
         lines = new Lines(45, 400);
-        entityList.add(lines);
+        gameEntities.add(lines);
 
         level = new Level(45, 500);
-        entityList.add(level);
+        gameEntities.add(level);
 
         scoreMultiplier = new ScoreMultiplier(288, 640);
-        entityList.add(scoreMultiplier);
+        gameEntities.add(scoreMultiplier);
 
     }
 
@@ -254,7 +260,7 @@ public class Game implements Runnable{
 //        gameBoard.setPieceCol((int) (pieceInPlay.getDimensions().getWidth()));
         if (!gameBoard.initPieceToBoard(pieceInPlay)) {
 //            System.out.println(numTries);
-            showGameOver();
+            startGameOverSequence();
         }
     }
 
@@ -273,7 +279,7 @@ public class Game implements Runnable{
         }
     }
 
-    private synchronized void updatePieceInPlay() {
+    private void updatePieceInPlay() {
 
         if (pieceInPlay != null) {
 //            for (Cell c: pieceInPlay.getActualMatrix()) {
@@ -333,8 +339,8 @@ public class Game implements Runnable{
 
     }
 
-    public synchronized ArrayList<Entity> getEntityList() {
-        return entityList;
+    public synchronized ArrayList<Entity> getGameEntities() {
+        return gameEntities;
     }
 
     public boolean[] getKeysHeldDown() {
@@ -349,7 +355,7 @@ public class Game implements Runnable{
         return keysNumCall;
     }
 
-    public synchronized void processInput() {
+    public void processInput() {
         if (isPaused) {
             return;
         }
@@ -488,6 +494,7 @@ public class Game implements Runnable{
                 break;
         }
 
+        // TODO: adjust
         processInput();
     }
 
@@ -510,7 +517,7 @@ public class Game implements Runnable{
         gameBoard.setPieceRow(1);
     }
 
-    private synchronized void calculateScore() {
+    private void calculateScore() {
         currentMultiplier = scoreMultiplier.getCurrentMultiplier();
         int linePoints = 0;
         int heightAdded = 0;
@@ -531,14 +538,6 @@ public class Game implements Runnable{
 
         scoreMultiplier.addToMultiplierHeight(heightAdded);
 
-//        if (linePoints != 0) {
-//            System.out.println("");
-//            System.out.println("linePoints:    " + linePoints);
-//            System.out.println("rowsCleared:   " + rowsCleared);
-//            System.out.println("previousClear: " + previousClear);
-//            System.out.println("heightAdded:   " + heightAdded);
-//        }
-
         int totalScore = (int) ((softPoints + fastPoints + linePoints) * currentMultiplier);
         score.addToScore(totalScore);
         softPoints -= softPoints;
@@ -547,7 +546,7 @@ public class Game implements Runnable{
 
     }
 
-    private synchronized void updateGameSpeed() {
+    private void updateGameSpeed() {
         currentLevel = level.getCurrentLevel();
         if (currentLevel == 20) {
             currentGameSpeed = LEVEL_20;
@@ -556,7 +555,7 @@ public class Game implements Runnable{
         }
     }
 
-    private synchronized void addToLines() {
+    private void addToLines() {
         lines.addLines(rowsCleared);
         currentLevel = level.getCurrentLevel();
         if (lines.getNewNumLines() - (currentLevel * 10) >= 0) {
@@ -607,7 +606,9 @@ public class Game implements Runnable{
 
         }
 
-        showGameOverScreen();
+        if (!isQuit) {
+            showGameOverScreen();
+        }
 
         try {
             this.gameThread.join();
