@@ -3,10 +3,12 @@ package main.model;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
+// represents the amount of line clears the player has achieved
 public class Lines extends Entity{
 
     private int currentNumLines, newNumLines;
 
+    // the constructor requires actualX and actualY to show the currentNumLines at the specified location on the screen
     public Lines(int actualX, int actualY) {
         this.actualX = actualX;
         this.actualY = actualY;
@@ -14,6 +16,8 @@ public class Lines extends Entity{
         newNumLines = 0;
     }
 
+    // MODIFIES: this
+    // EFFECTS: adds the number of numLines to newNumLines
     public void addLines(int numLines) {
         newNumLines += numLines;
     }
@@ -22,6 +26,7 @@ public class Lines extends Entity{
         return newNumLines;
     }
 
+    // EFFECTS: currentNumLines catches up to newNumLines adding 1 to every updated
     @Override
     public void update() {
         if (!isPaused) {
@@ -31,6 +36,7 @@ public class Lines extends Entity{
         }
     }
 
+    // EFFECTS: draws the currentNumLines to the screen
     @Override
     public void draw(Graphics2D g2) {
         g2.setColor(Color.WHITE);

@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.URL;
 
+// This represents the Main Menu of the Application.
 public class MenuPanel extends JPanel implements ActionListener {
     final static String MENUPANEL = "menuPanel";
     private static final Color backgroundCol = new Color(43, 42, 42);
@@ -14,6 +15,7 @@ public class MenuPanel extends JPanel implements ActionListener {
     private StandardButton start, highScores, options;
     private TetrisFrame frame;
 
+    // the constructor requiring the TetrisFrame to refer back to
     public MenuPanel(TetrisFrame frame) {
         super();
         this.frame = frame;
@@ -65,6 +67,7 @@ public class MenuPanel extends JPanel implements ActionListener {
 
     }
 
+    // EFFECTS: handles all the button actions depending if the user wants to start a game, check the High Scores, or take a look at the options screen
     @Override
     public void actionPerformed(ActionEvent e) {
         Object src = e.getSource();

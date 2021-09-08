@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 
+// Game controls everything about the gameplay of Tetris. The game loop resides here which updates and renders the game.
 public class Game implements Runnable{
     private final double MS_PER_UPDATE = 16.5;
     public static final int GAME_COLS = 10;
@@ -50,13 +51,15 @@ public class Game implements Runnable{
 
     private boolean[] keysHeldDown, keysSinglePress;
     private int[] keysNumCall;
-    private ArrayList<Entity> gameEntities, backgroundEntities, foregroundEntities;
+    private ArrayList<Entity> gameEntities;
     private Sound blockPlace, theme, rotate;
 
     private int numFall, processInput, incrementalUpdate, numTries;
-    private int rowsCleared, currentLevel, softPoints, fastPoints, currentMultiplierMeter, previousClear;
+    private int rowsCleared, currentLevel, softPoints, fastPoints, previousClear;
     private double currentMultiplier;
 
+    // constructor for Game which initializes all starting entities and variables required to start a game
+    // has a reference to the original TetrisFrame
     public Game(TetrisFrame frame) {
         this.frame = frame;
         this.ss = frame.getSoundSystem();
@@ -77,9 +80,7 @@ public class Game implements Runnable{
         currentLevel = 1;
         softPoints = 0;
         fastPoints = 0;
-        currentMultiplierMeter = 1;
 
-        initBackgroundEntities();
 
         // game entities initialization
         gameEntities = new ArrayList<>();
@@ -88,12 +89,15 @@ public class Game implements Runnable{
         initStartingEntities();
         initSounds();
 
+        // initializes user input
         keysHeldDown = new boolean[3];
         keysSinglePress = new boolean[3];
         keysNumCall = new int[3];
         Arrays.fill(keysSinglePress, true);
     }
 
+    // MODIFIES: this
+    // EFFECTS: initializes all the sounds for the game
     private void initSounds() {
         theme = new Sound("/sounds/TetrisTheme.wav", "theme", ss.getCurrentVolume());
         theme.setKeepLooping(true);
@@ -112,12 +116,16 @@ public class Game implements Runnable{
         return isPaused;
     }
 
+    // MODIFIES: this
+    // EFFECTS: sets the extrapolation for all entities in gameEntities with extrapolate
     public synchronized void setExtrapolation(double extrapolate) {
         for (Entity e: gameEntities) {
             e.setExtrapolation(extrapolate);
         }
     }
 
+    // MODIFIES: this
+    // EFFECTS: updates the different entities in the game and checks for any pauses, userInputs and other changes needed to keep track of the game state
     public synchronized void update() {
         if (gameEntities.contains(cdt) && cdt.getIsFinished() && isPaused) {
             resumeGame();
@@ -147,6 +155,8 @@ public class Game implements Runnable{
 
     }
 
+    // MODIFIES: this
+    // EFFECTS: updates the screen when the game is in the state of gameOver
     public synchronized void updateGameOver() {
         if (!gameBoard.boardContainsBlock()) {
             endGame();
@@ -163,6 +173,8 @@ public class Game implements Runnable{
 
     }
 
+    // MODIFIES: this
+    // EFFECTS: pauses the game state and pauses all entities and sounds in the game
     public synchronized void pauseGame() {
         if (gameEntities.contains(cdt) && cdt.getIsFinished()) {
             gameEntities.remove(cdt);
@@ -171,22 +183,25 @@ public class Game implements Runnable{
         for (Entity e: gameEntities) {
             e.pause();
         }
-        System.out.println("Game Paused!");
+
         isPaused = true;
         ss.pauseAllSounds();
     }
 
+    // MODIFIES: this
+    // EFFECTS: resumes everything in the game from the last paused state
     public synchronized void resumeGame() {
         for (Entity e: gameEntities) {
             e.resume();
         }
-        System.out.println("Resuming game!");
         ss.resetSounds();
         ss.resumeFromPause();
         ss.playSound(theme.getSoundName());
         frame.getCurrentPanel().requestFocusInWindow();
     }
 
+    // MODIFIES: this
+    // EFFECTS: starts the countdown from 3 to 1 after the starting or resuming of a game
     public synchronized void startCountDown() {
         if (!gameEntities.contains(cdt)) {
             cdt = new CountDownTimer(440, TetrisFrame.HEIGHT / 5);
@@ -195,6 +210,8 @@ public class Game implements Runnable{
         isPaused = true;
     }
 
+    // MODIFIES: this
+    // EFFECTS: starts the game thread and kicks off the game loop
     public synchronized void startGame() {
         this.keepRunning = true;
         gameThread = new Thread(this, "Game");
@@ -203,12 +220,16 @@ public class Game implements Runnable{
         startCountDown();
     }
 
+    // MODIFIES: this
+    // EFFECTS: ends the game and resets all the sounds
     public synchronized void endGame() {
         keepRunning = false;
         ss.resetSounds();
         ss.clearAllSounds();
     }
 
+    // MODIFIES: this
+    // EFFECTS: this allows the player to quit the game at the pause state or when the game is over
     public synchronized void quitGame() {
         isQuit = true;
         endGame();
@@ -218,10 +239,8 @@ public class Game implements Runnable{
         isOver = true;
     }
 
-    private synchronized void initBackgroundEntities() {
-        backgroundEntities = new ArrayList<>();
-    }
-
+    // MODIFIES: this
+    // EFFECTS: initializes the starting game entities
     private synchronized void initStartingEntities() {
         gameBoard = new Board(GAME_COLS, GAME_ROWS, 310, 20, 1, 0);
         gameEntities.add(gameBoard);
@@ -251,19 +270,20 @@ public class Game implements Runnable{
 
     }
 
+    // MODIFIES: this
+    // EFFECTS: gets a new pieceInPlay and checks if it is valid to be added to gameBoard
     public void getNewPieceInPlay() {
         TetrisPiece newPiece = nextPieces.remove();
         nextPieces.add(new TetrisPiece());
         pieceInPlay = newPiece;
         numTries = 0;
-        // gameBoard.validateStartingPieceCol(pieceInPlay);
-//        gameBoard.setPieceCol((int) (pieceInPlay.getDimensions().getWidth()));
         if (!gameBoard.initPieceToBoard(pieceInPlay)) {
-//            System.out.println(numTries);
             startGameOverSequence();
         }
     }
 
+    // MODIFIES: this
+    // EFFECTS: updates the heldPiece and the holdBoard
     private void updateHeldPiece() {
         if (heldPiece != null) {
             if (heldPiece.getType() != TetrisPiece.Type.L && heldPiece.getType() != TetrisPiece.Type.I && heldPiece.getType() != TetrisPiece.Type.T) {
@@ -279,21 +299,12 @@ public class Game implements Runnable{
         }
     }
 
+    // MODIFIES: this
+    // EFFECTS: updates the pieceInPlay and the gameBoard
     private void updatePieceInPlay() {
 
         if (pieceInPlay != null) {
-//            for (Cell c: pieceInPlay.getActualMatrix()) {
-//                System.out.println("Row: " + c.getRowPos() + " Col: " + c.getColPos());
-//            }
-            //System.out.println(pieceInPlay.getActualMatrix().size());
-
-
-//            gameBoard.clearCells(pieceInPlay.getActualMatrix());
-//            gameBoard.addTetrisPiece(pieceInPlay);
-
-//            gameBoard.addPieceToBoard(pieceInPlay, pieceInPlay.getActualMatrix());
             if (!isPaused) {
-                //gameBoard.updatePieceInBoard(pieceInPlay);
                 gameBoard.updateGhostCells(pieceInPlay);
                 if (numFall % currentGameSpeed == 0) {
                     // numTries allows the player to rotate and move as much as they can for a short time period
@@ -312,6 +323,7 @@ public class Game implements Runnable{
 
                 numFall++;
 
+                // ensures that numFall doesn't overflow
                 if (numFall > 12000) {
                     numFall = 0;
                 }
@@ -320,6 +332,8 @@ public class Game implements Runnable{
         }
     }
 
+    // MODIFIES: this
+    // EFFECTS: updates the next pieces coming into nextBoard
     private void updateNextPieces() {
         if (nextPieces.size() < 3) {
             return;
@@ -355,14 +369,16 @@ public class Game implements Runnable{
         return keysNumCall;
     }
 
+    // MODIFIES: this
+    // EFFECTS: given the arrays (keysNumCall and keysHeldDown), this processes input and correctly updates these arrays
+    // this handles input that can be held down
+    // this includes moving pieceInPlay left, right, or down
     public void processInput() {
         if (isPaused) {
             return;
         }
 
         while (keysNumCall[0] > 0) {
-//            System.out.println("Move Left!");
-//            gameBoard.shiftPieceCol(-1, pieceInPlay);
             if (gameBoard.movePieceSide(pieceInPlay, -1)) {
                 playRotateClick();
             }
@@ -374,8 +390,6 @@ public class Game implements Runnable{
             keysNumCall[0]--;
         }
         while (keysNumCall[1] > 0) {
-//            System.out.println("Move Right!");
-//            gameBoard.shiftPieceCol(1, pieceInPlay);
             if (gameBoard.movePieceSide(pieceInPlay, 1)) {
                 playRotateClick();
             }
@@ -388,10 +402,6 @@ public class Game implements Runnable{
             keysNumCall[1]--;
         }
         while (keysNumCall[2] > 0) {
-//            System.out.println("Soft Drop!");
-//            if (!gameBoard.shiftPieceRow(1, pieceInPlay)) {
-//                lockPieceInPlay();
-//            }
             softPoints += SLOW_DROP_PER_CELL;
             if (gameBoard.movePieceDown(pieceInPlay)) {
                 playRotateClick();
@@ -418,28 +428,14 @@ public class Game implements Runnable{
             keysNumCall[2]++;
         }
 
-//        if (keysHeldDown[0] && pieceInPlay != null) {
-//            System.out.println("Move Left");
-//            gameBoard.shiftPieceCol(-1);
-//            //pieceInPlay.moveLeft();
-//        }
-//
-//        if (keysHeldDown[1] && pieceInPlay != null) {
-//            System.out.println("Move Right!");
-//            gameBoard.shiftPieceCol(1);
-//            //pieceInPlay.moveRight(gameBoard);
-//        }
-//
-//        if (keysHeldDown[2] && pieceInPlay != null) {
-//            System.out.println("Soft Drop!");
-//            gameBoard.shiftPieceRow(1);
-//            //pieceInPlay.softDrop();
-//        }
         if (processInput > 12000) {
             processInput = 0;
         }
     }
 
+    // MODIFIES: this
+    // EFFECTS: this handles user input where you usually only press it once
+    // - pausing the game, fast drop, rotating left or right, holding or swapping a piece
     public synchronized void keyPressed(int keyCode) {
         switch (keyCode) {
             case KeyEvent.VK_ESCAPE:
@@ -494,21 +490,24 @@ public class Game implements Runnable{
                 break;
         }
 
-        // TODO: adjust
-        processInput();
     }
 
+    // EFFECTS: plays the sound rotating and moving the pieceInPlay
     private void playRotateClick() {
         ss.resetSound(rotate);
         ss.playSound(rotate.getSoundName());
     }
 
+    // MODIFIES: this
+    // EFFECTS: when a piece is placed, it allows canSwap to be true and uses the sound for blockPlace
     public void piecePlaced() {
         canSwap = true;
         ss.resetSound(blockPlace);
         ss.playSound(blockPlace.getSoundName());
     }
 
+    // MODIFIES: this
+    // EFFECTS: this ensures that the pieceInPlay is seen as successful and various visual aspects run to show to the user that it their action was complete (such as the light fade effect(
     private synchronized void lockPieceInPlay() {
         rowsCleared = gameBoard.getLineClear();
         gameBoard.applyLightFade(pieceInPlay);
@@ -517,6 +516,8 @@ public class Game implements Runnable{
         gameBoard.setPieceRow(1);
     }
 
+    // MODIFIES: this
+    // EFFECTS: calculates the current score depending on numLines cleared, level, and scoreMultiplier
     private void calculateScore() {
         currentMultiplier = scoreMultiplier.getCurrentMultiplier();
         int linePoints = 0;
@@ -546,6 +547,8 @@ public class Game implements Runnable{
 
     }
 
+    // MODIFIES: this
+    // EFFECTS: updates the game speed depending on the number of lines cleared, level increases every 10 lines cleared
     private void updateGameSpeed() {
         currentLevel = level.getCurrentLevel();
         if (currentLevel == 20) {
@@ -555,6 +558,8 @@ public class Game implements Runnable{
         }
     }
 
+    // MODIFIES: this
+    // EFFECTS: adds to lines depending on the rowsCleared
     private void addToLines() {
         lines.addLines(rowsCleared);
         currentLevel = level.getCurrentLevel();
@@ -564,16 +569,22 @@ public class Game implements Runnable{
         }
     }
 
+    // MODIFIES: frame
+    // EFFECTS: shows a new panel that is the gameOverPanel for the user to interact with, denotes finishing a game as well
     private void showGameOverScreen() {
         frame.setTitle("Tetris");
         frame.showGameOverPanel(score);
     }
 
 
-    // covers the main game loop
+    // MODIFIES: this
+    // EFFECTS: covers the main game loop
+    // throughout a game's lifetime, all of the gameplay is ran through here
+    // there is 60 updates per second
+    // rendering is tied to the rendering of gamePanel which the EDT decides when to show to the screen/frame
+    // the game thread is killed after the loop finishes running
     @Override
     public void run() {
-        // in the future, might use nanoTime instead of currentTimeMillis
         double previous = System.currentTimeMillis();
         double timer = System.currentTimeMillis();
         double lag = 0;
@@ -593,8 +604,6 @@ public class Game implements Runnable{
                 lag -= MS_PER_UPDATE;
             }
 
-
-            //frame.getCurrentPanel().repaint();
             numLoopRuns++;
 
             while (System.currentTimeMillis() - timer > 1000) {

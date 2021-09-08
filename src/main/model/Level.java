@@ -3,10 +3,12 @@ package main.model;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
+// Level represents how the fast the gameSpeed is at that point in time and also adds on to the score the player attains
 public class Level extends Entity{
 
     private int currentLevel;
 
+    // constructor for Level requires actualX and actualY to have the specified location to be shown on the screen
     public Level(int actualX, int actualY) {
         this.actualX = actualX;
         this.actualY = actualY;
@@ -17,6 +19,8 @@ public class Level extends Entity{
         return currentLevel;
     }
 
+    // MODIFIES: this
+    // EFFECTS: increases the currentLevel by 1
     public void increaseLevel() {
         if (currentLevel == 20) {
             return;
@@ -24,12 +28,11 @@ public class Level extends Entity{
         currentLevel++;
     }
 
-
+    // update method not required as of now
     @Override
-    public void update() {
+    public void update() {}
 
-    }
-
+    // EFFECTS: draws the currentLevel the player is in right now
     @Override
     public void draw(Graphics2D g2) {
         g2.setColor(Color.WHITE);

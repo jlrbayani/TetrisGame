@@ -4,6 +4,7 @@ import javax.sound.sampled.*;
 import java.io.IOException;
 import java.net.URL;
 
+// represents a Sound that could be heard in the Game
 public class Sound implements Runnable{
 
     private String fileRef;
@@ -13,6 +14,7 @@ public class Sound implements Runnable{
     private long clipStopSec;
     private boolean keepLooping;
 
+    // the constructor for sound requiring the file reference, a name for the sound, and the current volume it should be set with
     public Sound(String fileRef, String soundName, float currentVolume) {
         this.fileRef = fileRef;
         this.soundName = soundName;
@@ -23,6 +25,8 @@ public class Sound implements Runnable{
         setVolume(currentVolume);
     }
 
+    // MODIFIES: this
+    // EFFECTS: initializes a clip that is supposed to be tied to the sound using fileRef
     public void initClip() {
         URL url = Sound.class.getResource(fileRef);
         AudioInputStream audioInputStream;
@@ -71,21 +75,29 @@ public class Sound implements Runnable{
         return volume;
     }
 
+    // MODIFIES: this
+    // EFFECTS: changes the volume of the sound depending on volume
     public void changeVolume() {
         FloatControl masterGainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
         masterGainControl.setValue(20f * (float) Math.log10(volume));
     }
 
+    // MODIFIES: this
+    // EFFECTS: mutes this sound
     public void mute() {
         BooleanControl booleanControl = (BooleanControl) clip.getControl(BooleanControl.Type.MUTE);
         booleanControl.setValue(true);
     }
 
+    // MODIFIES: this
+    // EFFECTS: unmutes this sound
     public void unMute() {
         BooleanControl booleanControl = (BooleanControl) clip.getControl(BooleanControl.Type.MUTE);
         booleanControl.setValue(false);
     }
 
+    // MODIFIES: this
+    // EFFECTS: the clip resumes at clipStopSec
     public void resume() {
         clip.setMicrosecondPosition(clipStopSec);
         if (clipStopSec != 0) {
@@ -94,17 +106,21 @@ public class Sound implements Runnable{
         }
     }
 
+    // MODIFIES: this
+    // EFFECTS: stores the value of the last played second of the clip and stops the clip as well
     public void pause() {
         clipStopSec = clip.getMicrosecondPosition();
         clip.stop();
     }
 
+    // MODIFIES: this
+    // EFFECTS: resets the sound to its starting point
     public void resetSound() {
         clip.stop();
         clip.setMicrosecondPosition(0);
-//        clip.drain();
     }
 
+    // EFFECTS: plays the clip until it ends, unless keepLooping is set to true which makes the clip play endlessly
     @Override
     public void run() {
         clip.start();

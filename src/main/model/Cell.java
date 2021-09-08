@@ -3,6 +3,7 @@ package main.model;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
+// represents a Cell which build up a Board object and helps store Block objects for the creation of TetrisPieces
 public class Cell extends Entity{
 
     public static final int SIZE = 30;
@@ -12,6 +13,7 @@ public class Cell extends Entity{
     private boolean isGhost, flip, flipRight, flipLeft, canMoveVertically, canMoveRight, canMoveLeft, isLit;
     private Board board;
 
+    // constructor for the Cell in which it belongs to a Board object
     public Cell(int rowPos, int colPos, int actualX, int actualY, Board board){
         this.rowPos = rowPos;
         this.colPos = colPos;
@@ -36,10 +38,10 @@ public class Cell extends Entity{
         //addBlock(new Block(TetrisPiece.Type.I, this));
     }
 
+    // constructor for a cell that only has rowPos and colPos values
     public Cell(int rowPos, int colPos) {
         this.rowPos = rowPos;
         this.colPos = colPos;
-
     }
 
     public int getColPos() {
@@ -54,6 +56,8 @@ public class Cell extends Entity{
         return canMoveVertically;
     }
 
+    // MODIFIES: this, block
+    // EFFECTS: sets the extrapolate value of this cell as extrapolate and propagates that value to the block if this isFilled()
     @Override
     public void setExtrapolation(double extrapolate) {
         this.extrapolate = extrapolate;
@@ -62,6 +66,10 @@ public class Cell extends Entity{
         }
     }
 
+    // MODIFIES: this
+    // EFFECTS: at every update a cell can possibly shift down, left, or right depending on their respective boolean values
+    // if the cell isLit then it also adjusts the lightFade used in rendering it
+    // if the cell isFilled() then it also updates the block inside it
     @Override
     public void update() {
         if (canMoveVertically) {
@@ -79,8 +87,6 @@ public class Cell extends Entity{
                 flip = false;
                 canMoveVertically = false;
             }
-//            System.out.println("extrapolate: " + extrapolate);
-//            System.out.println("changeY: " + changeY);
         }
 
         if (canMoveRight) {
@@ -90,8 +96,6 @@ public class Cell extends Entity{
             if (flipRight) {
                 changeX -= (velocityX);
             }
-//            System.out.println("canMoveRight changeX:           " + changeX);
-//            System.out.println("canMoveRight changeX + actualX: " + (actualX + changeX));
             if (changeX > 5) {
                 flipRight = true;
             }
@@ -106,7 +110,6 @@ public class Cell extends Entity{
             if (flipLeft) {
                 changeX += (velocityX);
             }
-//            System.out.println("canMoveLeft changeX: " + changeX);
             if (changeX < -5) {
                 flipLeft = true;
             }
@@ -125,23 +128,12 @@ public class Cell extends Entity{
         }
 
         if (isFilled()) {
-//            block.setBoard(board);
-//            if (changeX != block.getChangeX()) {
-//                block.setChangeX(changeX);
-//            }
-//            if (changeY != block.getChangeY()) {
-//                block.setChangeY(changeY);
-//            }
             block.update();
-//            System.out.println("Cell x: " + changeX);
-//            System.out.println("Block x: " + block.getChangeX());
-//            System.out.println("Cell y: " + changeY);
-//            System.out.println("Block y: " + block.getChangeY());
 
         }
     }
 
-    @Override
+    // EFFECTS: draws the cell and the necessary effects for it, delegates its draw to its block if this cell isFilled()
     public void draw(Graphics2D g2) {
         if (rowPos == 0 && board.getNumRows() == 21) {
             return;
@@ -192,14 +184,15 @@ public class Cell extends Entity{
         return block != null;
     }
 
+    // MODIFIES: this, block
+    // EFFECTS: adds the block to this cell and this cell's variables are sent to block using lockBlock
     public void addBlock(Block block) {
-//        if (block == null) {
-//            return;
-//        }
         this.block = block;
         block.lockBlock(this);
     }
 
+    // MODIFIES: this, block
+    // EFFECTS: removes the block from this cell and disassociates this cell from the block
     public void removeBlock() {
         if (block != null) {
             block.removeCell();

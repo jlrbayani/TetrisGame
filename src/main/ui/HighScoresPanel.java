@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
+// this shows the user a list of the HighScores they've accumulated and is saved to a json file
 public class HighScoresPanel extends JPanel implements ActionListener {
     final static String HIGHSCORESPANEL = "highScoresPanel";
     private TetrisFrame frame;
@@ -18,6 +19,7 @@ public class HighScoresPanel extends JPanel implements ActionListener {
     private static final int OFFSET_X = 310;
     private int startingX, startingY;
 
+    // the constructor for the highScores panel which refers back to TetrisFrame
     public HighScoresPanel(TetrisFrame frame) {
         super();
         this.frame = frame;
@@ -30,12 +32,17 @@ public class HighScoresPanel extends JPanel implements ActionListener {
         requestFocus();
     }
 
+    // MODIFIES: this
+    // EFFECTS: initializes all the buttons for this panel
     private void initButtons() {
         backButton = new StandardButton("BACK");
         backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         backButton.addActionListener(this);
     }
 
+    // REQUIRES: the buttons added to the panel must be initialized
+    // MODIFIES: this
+    // EFFECTS: initializes all required components and adds them to this panel
     private void initPanel() {
         setBackground(backgroundCol);
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -56,6 +63,7 @@ public class HighScoresPanel extends JPanel implements ActionListener {
         frame.returnToPreviousPanel();
     }
 
+    // EFFECTS: handles user input if the backButton is pressed
     @Override
     public void actionPerformed(ActionEvent e) {
         Object src = e.getSource();
@@ -64,6 +72,7 @@ public class HighScoresPanel extends JPanel implements ActionListener {
         }
     }
 
+    // EFFECTS: handles and unique painting required for the panel, in this case this is used to display the high scores with their respective name and score
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);

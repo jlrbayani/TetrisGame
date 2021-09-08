@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 
+// the main frame for the application which handles all of the panel/screen swapping within Tetris
 public class TetrisFrame extends JFrame {
     private JPanel cards;
     private MenuPanel menuPanel;
@@ -33,11 +34,12 @@ public class TetrisFrame extends JFrame {
 
     public static final String HIGH_SCORES = "highScores.json";
 
-
+    // the constructor for TetrisFrame
     public TetrisFrame() {
         initFrame();
     }
 
+    // EFFECTS: initializes the frame, ensures the starting panel is the Menu and handles saving of high scores at exit
     public void initFrame() {
         setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -65,6 +67,8 @@ public class TetrisFrame extends JFrame {
         });
     }
 
+    // MODIFIES: this
+    // EFFECTS: swaps the current panel with the gamePanel, starts a game
     public void startGame() {
         previousPanel = currentPanel;
         currentPanel = gamePanel;
@@ -72,49 +76,62 @@ public class TetrisFrame extends JFrame {
         cardLayout.show(cards, GamePanel.GAMEPANEL);
     }
 
+    // MODIFIES: this
+    // EFFECTS: swaps the current panel with the menuPanel
     public void showMenu() {
         previousPanel = currentPanel;
         currentPanel = menuPanel;
         cardLayout.show(cards, MenuPanel.MENUPANEL);
     }
 
+    // MODIFIES: this
+    // EFFECTS: swaps the current panel with the highScoresPanel
     public void showHighScores() {
         previousPanel = currentPanel;
         currentPanel = highScoresPanel;
         cardLayout.show(cards, HighScoresPanel.HIGHSCORESPANEL);
     }
 
+    // MODIFIES: this
+    // EFFECTS: swaps the current panel with the optionsPanel
     public void showOptions() {
         previousPanel = currentPanel;
         currentPanel = optionsPanel;
         cardLayout.show(cards, OptionsPanel.OPTIONSPANEL);
     }
 
+    // MODIFIES: this
+    // EFFECTS: swaps the current panel with the pausedPanel
     public void showPausedPanel() {
         previousPanel = currentPanel;
         currentPanel = pausedPanel;
         cardLayout.show(cards, PausedPanel.PAUSEDPANEL);
     }
 
+    // MODIFIES: this
+    // EFFECTS: swaps the current panel (most likely with the game at a paused state) with the gamePanel
     public void showGamePanel() {
         previousPanel = currentPanel;
         currentPanel = gamePanel;
         cardLayout.show(cards, GamePanel.GAMEPANEL);
     }
 
+    // MODIFIES: this
+    // EFFECTS: swaps the current panel (most likely gamePanel) with the gameOverOver panel
     public void showGameOverPanel(Score score) {
         previousPanel = currentPanel;
         currentPanel = gameOverPanel;
         boolean added = addToHighScores(score);
         if (added) {
             setGameOverPanelState(true);
-            System.out.println("setNewScore");
             gameOverPanel.setScore(score);
         }
         gameOverPanel.initPanel();
         cardLayout.show(cards, GameOverPanel.GAMEOVERPANEL);
     }
 
+    // MODIFIES: gameOverPanel
+    // EFFECTS: changes the gameOverPanelState
     private void setGameOverPanelState(boolean addScore) {
         gameOverPanel.setHasNewScore(addScore);
     }
@@ -123,6 +140,8 @@ public class TetrisFrame extends JFrame {
         return highScores;
     }
 
+    // MODIFIES: this
+    // EFFECTS: this adds a score to the highScore list and sorts the list as well from greatest to least score value
     private boolean addToHighScores(Score score) {
         boolean added = false;
         if (highScores.size() < 10) {
@@ -146,6 +165,8 @@ public class TetrisFrame extends JFrame {
         return added;
     }
 
+    // MODIFIES: this
+    // EFFECTS: initializes the highScore and reads from a file in the string HIGH_SCORES
     private void initHighScores() {
         highScores = new ArrayList<>();
         jsonReader = new JsonReader(HIGH_SCORES);
@@ -159,6 +180,8 @@ public class TetrisFrame extends JFrame {
         }
     }
 
+    // MODIFIES: file found from HIGH_SCORES
+    // EFFECTS: saves the scores from highScores into the file in HIGH_SCORES
     private void saveHighScores() {
         jsonWriter = new JsonWriter(HIGH_SCORES);
         try {
@@ -171,6 +194,8 @@ public class TetrisFrame extends JFrame {
         }
     }
 
+    // MODIFIES: this
+    // EFFECTS: initializes the cards of panels and adds them to CardLayout
     private void initCards() {
         cards = new JPanel(new CardLayout());
         cardLayout = (CardLayout) (cards.getLayout());
@@ -202,6 +227,8 @@ public class TetrisFrame extends JFrame {
         setLocation((screen.width - getWidth()) / 2, (screen.height - getHeight()) / 2);
     }
 
+    // MODIFIES: this
+    // EFFECTS: sets the currentPanel with the previousPanel
     public void returnToPreviousPanel() {
         if (previousPanel != null) {
             this.currentPanel = previousPanel;
@@ -220,8 +247,6 @@ public class TetrisFrame extends JFrame {
         }
     }
 
-    public JPanel getPreviousPanel() { return previousPanel; }
-
     public JPanel getCurrentPanel() {
         return currentPanel;
     }
@@ -232,7 +257,6 @@ public class TetrisFrame extends JFrame {
 
     private void closeSoundSystem() {
         ss.closeSoundSystem();
-        System.out.println("Sound System Closed!");
     }
 
 }

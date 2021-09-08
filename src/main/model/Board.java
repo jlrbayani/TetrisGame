@@ -3,6 +3,7 @@ package main.model;
 import java.awt.*;
 import java.util.ArrayList;
 
+// Board represents where TetrisPieces and Blocks could be added to using the Cells that build this up
 public class Board extends Entity {
 
     private int numCols;
@@ -10,17 +11,17 @@ public class Board extends Entity {
     private ArrayList<Cell> boardList;
     private ArrayList<Cell> ghostList;
     private int actualX, actualY;
-    private double extrapolate;
     private int pieceRow, pieceCol;
     private boolean canMove;
 
+    // referenced https://tetris.fandom.com/ for wall kicks data
     private static final int[][] wallKickRightDefault = {
                                                     {-1, 0}, {-1, -1}, {0, 2}, {-1, 2},   // 1 --> 2
                                                     {1, 0}, {1, 1}, {0, -2}, {1, -2},     // 2 --> 3
                                                     {1, 0}, {1, -1}, {0, 2}, {1, 2},      // 3 --> 4
                                                     {-1, 0}, {-1, 1}, {0, -2}, {-1, 2}    // 4 --> 1
                                                     };
-
+    // referenced https://tetris.fandom.com/ for wall kicks data
     private static final int[][] wallKickRightI = {
                                                     {-2, 0}, {1, 0}, {-2, 1}, {1, -2},   // 1 --> 2
                                                     {-1, 0}, {2, 0}, {-1, -2}, {2, 1},   // 2 --> 3
@@ -29,6 +30,11 @@ public class Board extends Entity {
                                                     };
 
 
+    // constructor for a Board object that indicates how many columns and rows it should have
+    // the pieceRow defining the starting row for TetrisPieces should be placed
+    // the pieceCol defining the starting col for TetrisPieces should be placed
+    // actualX for the starting x location on the screen to start drawing the board
+    // actualY for the starting y location on the screen to start drawing the board
     public Board(int numCols, int numRows, int actualX, int actualY, int pieceRow, int pieceCol) {
         this.numCols = numCols;
         this.numRows = numRows;
@@ -41,11 +47,9 @@ public class Board extends Entity {
         canMove = false;
 
         initBoard();
-        numMoveLeniency = 0;
-        // for testing purposes
-        //printBoard();
     }
 
+    // EFFECTS: sets the extrapolation for all the cells in the boardList
     @Override
     public void setExtrapolation(double extrapolate) {
         if (!isPaused) {
@@ -55,6 +59,7 @@ public class Board extends Entity {
         }
     }
 
+    // EFFECTS: updates all entities inside boardList
     @Override
     public void update() {
         if (!isPaused) {
@@ -64,6 +69,7 @@ public class Board extends Entity {
         }
     }
 
+    // EFFECTS: draws the corresponding cells in boardList and ghostList
     @Override
     public void draw(Graphics2D g2) {
         for (Entity e: boardList) {
@@ -76,6 +82,8 @@ public class Board extends Entity {
         }
     }
 
+    // MODIFIES: this
+    // EFFECTS: initializes the Board and sets up all rows and columns of Cells in boardList
     public void initBoard() {
         boardList = new ArrayList<>();
         ghostList = new ArrayList<>();
@@ -92,6 +100,8 @@ public class Board extends Entity {
         }
     }
 
+    // MODIFIES: this
+    // EFFECTS: removes the first block currently in the boardList
     public void removeFirstBlock() {
         for (Cell c: boardList) {
             if (c.isFilled() || c.isLit()) {
@@ -103,6 +113,8 @@ public class Board extends Entity {
         }
     }
 
+    // EFFECTS: returns true if the board contains a block
+    // returns false if the board doesn't contain any blocks
     public boolean boardContainsBlock() {
         for (Cell c: boardList) {
             if (c.isFilled()) {
@@ -113,8 +125,10 @@ public class Board extends Entity {
         return false;
     }
 
+    // MODIFIeS: tp, boardList
+    // EFFECTS: applies a lightFade on columns that overlap with TetrisPiece tp that propagates and changes fade intensity depending on the height from the top
     public void applyLightFade(TetrisPiece tp) {
-        if (tp.getActualMatrix().size() == 0) {
+        if (tp == null || tp.getActualMatrix().size() == 0) {
             return;
         }
         Cell firstCell = tp.getActualMatrix().get(0);
@@ -141,6 +155,9 @@ public class Board extends Entity {
 
     }
 
+    // MODIFIES: this
+    // EFFECTS: returns the number of line clears found in Board
+    // - a line clear is when a row is completely filled with blocks
     public int getLineClear() {
         int rowsCleared = 0;
         for (int row = 0; row < numRows; row++) {
@@ -162,6 +179,8 @@ public class Board extends Entity {
         return rowsCleared;
     }
 
+    // MODIFIES: this
+    // EFFECTS: moves all the blocks above endRow to the row below it
     public void shiftBlocks(int endRow) {
         int currentRow = endRow;
         while (currentRow > 0) {
@@ -178,14 +197,17 @@ public class Board extends Entity {
         }
     }
 
+    // MODIFIES: this
+    // EFFECTS: given cells, boardList is removed of blocks corresponding to the same indices
     public void clearCells(ArrayList<Cell> cells) {
         for (Cell c: cells) {
-            //System.out.println("clearCells: " + c);
-//            System.out.println("clearCells --> row: " + c.getRowPos() + " col: " + c.getColPos() + " index: " + c.getIndex(numCols));
             boardList.get(c.getIndex(numCols)).removeBlock();
         }
     }
 
+    // MODIFIES: this
+    // EFFECTS: adds TetrisPiece tp to the boardList
+    // this is meant to be called constantly such that tp is updated
     public void addTetrisPiece(TetrisPiece tp) {
         ArrayList<Cell> matrix = tp.getOriginalMatrix();
         tp.clearActualMatrix();
@@ -214,6 +236,11 @@ public class Board extends Entity {
         }
     }
 
+    // MODIFIES: this
+    // EFFECTS: initializes the TetrisPiece tp to the board
+    // this is meant to be only called once to set the tp to the board at the start of its existence in this Board
+    // returns true if tp is successfully added to the board
+    // returns false otherwise
     public synchronized boolean initPieceToBoard(TetrisPiece tp) {
         ArrayList<Cell> matrix = tp.getOriginalMatrix();
         int matrixNumRows = tp.getMatrixNumRows();
@@ -257,6 +284,9 @@ public class Board extends Entity {
         return false;
     }
 
+    // MODIFIES: this, tp
+    // EFFECTS: adds the cells in tp to the ghostList and is reflected on the Board state
+    // returns the row distance between the initial position of tp and ghostList
     public synchronized int fastDropPiece(TetrisPiece tp) {
         ArrayList<Cell> actualMatrix = tp.getActualMatrix();
         if (actualMatrix.size() == 0) {
@@ -269,6 +299,8 @@ public class Board extends Entity {
         return topRowGhost - bottomRowTp + 1;
     }
 
+    // EFFECTS: updates the ghostList depending on tp
+    // this searches for the bottomRow from tp until the first block is reached that might collide with tp
     public synchronized void updateGhostCells(TetrisPiece tp) {
         if (tp == null) {
             return;
@@ -280,11 +312,9 @@ public class Board extends Entity {
         ghostList = new ArrayList<>();
         ArrayList<Cell> ghostCellsBefore = copy.getActualMatrix();
         ArrayList<Cell> ghostCellsCurrent = copy.getActualMatrix();
-        int index = 0;
         while (checkPieceMove(tp, ghostCellsCurrent)) {
             ghostCellsBefore = ghostCellsCurrent;
             ghostCellsCurrent = getMoveTo(ghostCellsCurrent, 0, 1);
-            index++;
         }
 
         for (Cell c: ghostCellsBefore) {
@@ -293,51 +323,31 @@ public class Board extends Entity {
         ghostList = ghostCellsBefore;
     }
 
-    public synchronized void updatePieceInBoard(TetrisPiece tp) {
-        for (Cell c: tp.getActualMatrix()) {
-            Block b = c.getBlock();
-            boardList.get(c.getIndex(numCols)).addBlock(b);
-        }
-    }
-
+    // MODIFIES: tp, this
+    // EFFECTS: handles rotating tp
+    // returns true if the rotation succeeds
+    // returns false if the rotation fails
     public synchronized boolean rotatePieceInPlay(TetrisPiece tp, boolean rotateRight) {
         if (tp.getType() == TetrisPiece.Type.O) {
             return true;
         }
-//        System.out.println("Before rotate: ");
-//        for (Cell c: tp.getActualMatrix()) {
-//            System.out.println(c);
-//        }
-//        System.out.println("");
-//        System.out.println("Original Matrix: ");
-//        tp.printOriginalMatrix();
-//        System.out.println("");
-
-//        System.out.println("Actual Matrix: ");
-//        tp.printActualMatrix();
         TetrisPiece tester = tp.copyPiece();
-//        System.out.println("Copy Rotation Before: " + tester.getRotation());
         if (rotateRight) {
             tester.rotateRight();
         } else {
             tester.rotateLeft();
         }
-//        System.out.println("Rotated Original Matrix: ");
-//        tester.printOriginalMatrix();
-//        System.out.println("");
-
-//        System.out.println("Copy Rotation After: " + tester.getRotation());
-        tester.setActualMatrix(this, tp.getOriginalMatrix(), rotateRight);
-//        System.out.println("Actual Matrix: ");
-//        tester.printActualMatrix();
+        tester.setActualMatrix(this, tp.getOriginalMatrix());
         ArrayList<Cell> moveTo = tester.getActualMatrix();
+        // if rotation occurs at the edge of the Board for Type I
         if (tp.getType() == TetrisPiece.Type.I && checkRowOverflow(tp, moveTo)) {
-            //System.out.println("Kicking from wall!");
             moveTo = applyEdgeKickI(tp, moveTo);
         }
 
+        // checks if rotation is possible in the if case
+        // in else, all the wall kicks are applied to see if the rotation is possible if shifted slightly to a different row and column
+        // referenced https://tetris.fandom.com/ for wall kicks data
         if (checkPieceMove(tp, moveTo) && !checkRowOverflow(tp, moveTo)) {
-//            tp.rotateRight();
             tp.setRotation(tester.getRotation());
             addPieceToBoard(tp, moveTo);
             return true;
@@ -351,18 +361,13 @@ public class Board extends Entity {
                 }
             }
         }
-//        System.out.println("");
-//
-//        System.out.println("After rotate: ");
-//        for (Cell c: tp.getActualMatrix()) {
-//            System.out.println(c);
-//        }
-//        System.out.println("");
-//        System.out.println(tp.getRotation());
 
         return false;
     }
 
+    // MODIFIES: tp, this
+    // EFFECTS: returns an ArrayList<Cell> that contains the cells of tp where edgeKicks are applied
+    // this is a unique case for the TetrisPiece I
     public ArrayList<Cell> applyEdgeKickI(TetrisPiece tp , ArrayList<Cell> moveTo) {
         ArrayList<Cell> actualMatrix = tp.getActualMatrix();
         int index = 0;
@@ -390,6 +395,11 @@ public class Board extends Entity {
         return moveTo;
     }
 
+    // MODIFIES: tp, this
+    // EFFECTS: checks if the tp and the moveTo it intends to moveTo does not overflow to the next Row
+    // - this occurs due to the nature of boardList being an ArrayList
+    // returns true if there is an overflow to the next row
+    // returns false otherwise
     public boolean checkRowOverflow(TetrisPiece tp, ArrayList<Cell> moveTo) {
         if (moveTo.size() != 4) {
             return true;
@@ -419,12 +429,15 @@ public class Board extends Entity {
         return false;
     }
 
+    // EFFECTS: applies a wall kick to the copy piece and returns the moveTo that contains the cells its going to be possibly 'kicked' to
+    // this wall kick information is based off rotation of the original piece tp, numTries, and the type of rotation (left or right)
     public ArrayList<Cell> applyWallKick(TetrisPiece tp, TetrisPiece copy, int numTries, boolean rotateRight) {
         int currentRotation = tp.getRotation();
         int kickIndex = ((currentRotation - 1) * 4) + numTries;
         ArrayList<Cell> moveTo;
         int rowChange, colChange;
 
+        // wall kick specific for Piece I
         if (tp.getType() == TetrisPiece.Type.I) {
             if (rotateRight) {
                 colChange = wallKickRightI[kickIndex][0];
@@ -433,7 +446,7 @@ public class Board extends Entity {
                 colChange = -wallKickRightI[kickIndex][0];
                 rowChange = -wallKickRightI[kickIndex][1];
             }
-        } else {
+        } else { // default wall kick for other pieces
             if (rotateRight) {
                 colChange = wallKickRightDefault[kickIndex][0];
                 rowChange = wallKickRightDefault[kickIndex][1];
@@ -448,6 +461,10 @@ public class Board extends Entity {
         return moveTo;
     }
 
+    // MODIFIES: this
+    // EFFECTS: this moves the piece tp to the left or to the right depending on move (-1 and 1 respectively)
+    // it's not a guarantee move because there is a call to checkPieceMove which ensures that there's space for the tp to move in
+    // if it succeeds, then the piece is added to the board and alters this
     public synchronized boolean movePieceSide(TetrisPiece tp, int move) {
         ArrayList<Cell> moveTo = getMoveTo(tp, move, 0);
         if (checkPieceMove(tp, moveTo)) {
@@ -458,6 +475,10 @@ public class Board extends Entity {
         return false;
     }
 
+    // MODIFIES: this
+    // EFFECTS: this moves the piece tp down 1 cell
+    // it's not a guarantee move because there is a call to checkPieceMove which ensures that there's space for the tp to move in
+    // if it succeeds, then the piece is added to the board and alters this
     public synchronized boolean movePieceDown(TetrisPiece tp) {
         if (tp == null) {
             return false;
@@ -472,7 +493,10 @@ public class Board extends Entity {
     }
 
 
-    // REQUIRES: moveTo must be verified using checkPieceMove
+    // REQUIRES: moveTo must be verified using checkPieceMove before calling this method
+    // MODIFIES: this
+    // EFFECTS: this adds tp to boardList and gets rid of its older state and applies moveTo onto it regardless if moveTo is a valid cell or not
+    // this is why checkPieceMove must be called to ensure that moveTo is fully valid for tp to move into
     public synchronized void addPieceToBoard(TetrisPiece tp, ArrayList<Cell> moveTo) {
         ArrayList<Cell> oldMatrix = tp.getActualMatrix();
         clearCells(oldMatrix);
@@ -486,6 +510,7 @@ public class Board extends Entity {
 
     }
 
+    // EFFECTS: a helper method for the other getMoveTo method, ensures tp is not null
     public synchronized ArrayList<Cell> getMoveTo(TetrisPiece tp, int colChange, int rowChange) {
         if (tp == null) {
             return null;
@@ -493,6 +518,7 @@ public class Board extends Entity {
         return getMoveTo(tp.getActualMatrix(), colChange, rowChange);
     }
 
+    // EFFECTS: returns an ArrayList<Cell> containing the cellsll that actualMatrix could possibly move to based off colChange and rowChange
     public synchronized ArrayList<Cell> getMoveTo(ArrayList<Cell> actualMatrix, int colChange, int rowChange) {
         ArrayList<Cell> moveTo = new ArrayList<>();
 
@@ -519,6 +545,7 @@ public class Board extends Entity {
         return moveTo;
     }
 
+    // EFFECTS: specifically made for pieceI wallKicks and rotation against the edge of the walls, this method pushes it so that no row overflow happens due to the nature of boardList
     public synchronized ArrayList<Cell> getMoveToOverflow(ArrayList<Cell> actualMatrix, int colChange, int rowChange) {
         ArrayList<Cell> moveTo = new ArrayList<>();
 
@@ -541,29 +568,18 @@ public class Board extends Entity {
         return moveTo;
     }
 
+    // EFFECTS: returns true if moveTo is valid for tp to move to
+    // returns false otherwise
     public boolean checkPieceMove(TetrisPiece tp, ArrayList<Cell> moveTo) {
         if (moveTo == null || moveTo.size() == 0) {
-//            System.out.println("here");
             return false;
         }
 
         for (Cell moveToCurrentCell : moveTo) {
-            //            System.out.println("diff: " + Math.abs(moveToCurrentCell.getColPos() - actualCurrentCell.getColPos()));
-//            if (Math.abs(moveToCurrentCell.getColPos() - actualCurrentCell.getColPos()) > numCols - 2) {
-//                return false;
-//            }
-
             if (moveToCurrentCell == null || (moveToCurrentCell.isFilled() && !tp.getActualMatrix().contains(moveToCurrentCell))) {
                 return false;
             }
         }
-
-//        for (Cell c: moveTo) {
-//            colIndex = c.getColPos();
-//            if (c.isFilled() && !tp.getActualMatrix().contains(c)) {
-//                return false;
-//            }
-//        }
 
         return true;
     }
@@ -576,525 +592,13 @@ public class Board extends Entity {
         this.pieceCol = pieceCol;
     }
 
-    public boolean shiftPieceRow(int offset, TetrisPiece tp) {
-//        System.out.println("");
-//        System.out.println("Shifting Down: ");
-//        System.out.println("PieceRow                --> " + pieceRow);
-//        System.out.println("NumRows                 --> " + numRows);
-//        System.out.println("BottomOffset            --> " + tp.getBottomOffset());
-//        System.out.println("PieceRow + bottomOffset --> " + (pieceRow + tp.getBottomOffset()));
-//        System.out.println("TopOffset               --> " + tp.getTopOffset());
-//        System.out.println("PieceRow + TopOffset    --> " + (pieceRow + tp.getTopOffset()));
-//        System.out.println("Height                  --> " + (int) tp.getDimensions().getHeight());
-        if (pieceRow + tp.getDimensions().getHeight() + tp.getTopOffset() == numRows) {
-//            System.out.println("pieceRow + tp.getDimensions().getHeight() + tp.getBottomOffset()+ tp.getTopOffset(): " + (pieceRow + tp.getDimensions().getHeight() + tp.getBottomOffset() + tp.getTopOffset()));
-            return false;
-        }
-        if (!checkMoveDown(tp)) {
-            return false;
-        }
-        this.pieceRow += offset;
-        return true;
-    }
-
+    // MODIFIES: this
+    // EFFECTS: shifts this board's pieceRow based off the offset and ensures that the pieceRow never exceeds numRows
     public void shiftPieceRow(int offset) {
         if (pieceRow == numRows) {
             return;
         }
         this.pieceRow += offset;
-    }
-
-    public int getPieceRow() {
-        return pieceRow;
-    }
-
-    public void shiftPieceCol(int offset, TetrisPiece tp) {
-//        System.out.println("LeftOffset                --> " + tp.getLeftOffset());
-//        System.out.println("PieceCol + leftOffset     --> " + (pieceCol + tp.getLeftOffset()));
-//        System.out.println("RightOffset               --> " + tp.getRightOffset());
-//        System.out.println("PieceCol + rightOffset    --> " + (pieceCol + tp.getRightOffset()));
-        int leftOffset = tp.getLeftOffset();
-        int rightOffset = tp.getRightOffset();
-        int pieceWidth = (int) tp.getDimensions().getWidth();
-
-        if ((pieceCol + leftOffset <= 0 && offset < 0)) {
-            return;
-        }
-        if ((rightOffset == 0 && leftOffset != 0) || (rightOffset >= 0 && leftOffset >= 0)) {
-            if (pieceCol + pieceWidth + leftOffset >= numCols && offset > 0) {
-//                System.out.println("");
-//                System.out.println("First Case");
-//                System.out.println("pieceCol + tp.getDimensions().getWidth() + tp.getLeftOffset(): " + (pieceCol + tp.getDimensions().getWidth() + tp.getLeftOffset()));
-                return;
-            }
-        } else if (leftOffset == 0) {
-            if (pieceCol + pieceWidth >= numCols && offset > 0) {
-//                System.out.println("");
-//                System.out.println("Second Case");
-//                System.out.println("pieceCol + tp.getDimensions().getWidth(): " + (pieceCol + tp.getDimensions().getWidth()));
-                return;
-            }
-        } else {
-            if ((pieceCol + pieceWidth + rightOffset + leftOffset >= numCols && offset > 0)) {
-//                System.out.println("");
-//                System.out.println("Last Case");
-//                System.out.println("pieceCol + tp.getDimensions().getWidth() + tp.getRightOffset() + tp.getLeftOffset(): " + (pieceCol + tp.getDimensions().getWidth() + tp.getRightOffset() + tp.getLeftOffset()));
-                return;
-            }
-        }
-
-        if (!checkMoveSide(tp, offset)) {
-            return;
-        }
-
-
-//        if (tp.getLeftOffset() >= tp.getRightOffset()) {
-//            if ((pieceCol + tp.getDimensions().getWidth() - tp.getRightOffset() + tp.getLeftOffset() >= numCols && offset > 0)) {
-//                return;
-//            }
-//        } else if (tp.getLeftOffset() < tp.getRightOffset()) {
-//            if ((pieceCol + tp.getDimensions().getWidth() + tp.getRightOffset() + tp.getLeftOffset() >= numCols && offset > 0)) {
-//                return;
-//            }
-//        }
-
-        this.pieceCol += offset;
-//        System.out.println("");
-//        System.out.println("Shifting To Side ");
-//        System.out.println("New PieceCol              --> " + pieceCol);
-//        System.out.println("NumCols                   --> " + numCols);
-//        System.out.println("Width                     --> " + pieceWidth);
-    }
-
-    public void shiftPieceCol(int offset) {
-        if ((pieceCol == 0 && offset < 0) || (pieceCol == numCols && offset > 0)) {
-            return;
-        }
-        this.pieceCol += offset;
-    }
-
-    public int numMoveLeniency;
-
-    public void rotatePiece(TetrisPiece tp, boolean rotateRight) {
-        if (tp == null) {
-            return;
-        }
-        int widthBefore = (int) tp.getDimensions().getWidth();
-        TetrisPiece copy = tp.copyPiece();
-        if (rotateRight) {
-            tp.rotateRight();
-        } else {
-            tp.rotateLeft();
-        }
-
-//        boolean found = findOptimalPlacement(copy);
-//        if (found) {
-//            if (rotateRight) {
-//                tp.rotateRight();
-//            } else {
-//                tp.rotateLeft();
-//            }
-//        } else {
-//            return;
-//        }
-
-//        while (!checkRotation(tp) && numMoveLeniency < 3) {
-//            if (rotateRight) {
-//                tp.rotateLeft();
-//            } else {
-//                tp.rotateRight();
-//            }
-//            System.out.println("pieceRow: " + pieceRow);
-//            pieceRow--;
-//            numMoveLeniency++;
-//            rotatePiece(tp, rotateRight);
-//        }
-
-        int oldPieceCol = pieceCol;
-        if (!checkRotation(tp)) {
-            if (rotateRight) {
-                tp.rotateLeft();
-            } else {
-                tp.rotateRight();
-            }
-//            pieceRow--;
-//            rotatePiece(tp, rotateRight);
-            System.out.println("Return to rotation before");
-            if (pieceCol != oldPieceCol) {
-                System.out.println("PieceCol changed!");
-                pieceCol = oldPieceCol;
-            }
-            return;
-        }
-
-        int newWidth = (int) tp.getDimensions().getWidth();
-
-//        System.out.println("");
-//        System.out.println("NewWidth:               " + newWidth);
-//        System.out.println("PieceCol:               " + pieceCol);
-//        System.out.println("WidthBefore:            " + widthBefore);
-//        System.out.println("PieceCol + newWidth:    " + (pieceCol + newWidth));
-//        System.out.println("NumCols:                " + numCols);
-//        System.out.println("PieceCol:               " + pieceCol);
-//        System.out.println("WidthBefore:            " + widthBefore);
-
-        if (widthBefore <= newWidth && (pieceCol + newWidth > numCols)) {
-            //pieceCol -= newWidth - widthBefore;
-            pieceCol = numCols - newWidth;
-            System.out.println("First Case");
-//            System.out.println("New PieceCol:       " + pieceCol);
-        }
-        if (widthBefore <= newWidth && (pieceCol - newWidth < 0) && pieceCol < newWidth - widthBefore) {
-            System.out.println("pieceCol - newWidth: " + (pieceCol - newWidth));
-            pieceCol = 0;
-            System.out.println("Second Case");
-//            System.out.println("New PieceCol:       " + pieceCol);
-        }
-
-    }
-
-    public boolean findOptimalPlacement(TetrisPiece tp) {
-        ArrayList<Cell> originalMatrix = tp.getOriginalMatrix();
-        int matrixNumRows = tp.getMatrixNumRows();
-        int matrixNumCols = tp.getMatrixNumCols();
-        int width = (int) tp.getDimensions().getWidth();
-        int height = (int) tp.getDimensions().getHeight();
-
-        if (!validatePiecePlacement(tp)) {
-            if (checkMoveUp(tp)) {
-                System.out.println("Validating to Up");
-                pieceRow--;
-                return true;
-            }
-            if (checkMoveSide(tp, -1)) {
-                System.out.println("Validating to Left");
-                pieceCol--;
-                return true;
-            }
-            if (checkMoveSide(tp, 1)) {
-                System.out.println("Validating to Right");
-                pieceCol++;
-                return true;
-            }
-        } else {
-            return true;
-        }
-
-        return false;
-    }
-
-    // TODO: do code cleanup and remove unecessary code
-    public void wallKickRotationRight(TetrisPiece tp) {
-        ArrayList<Cell> oldCells = new ArrayList<>();
-        boolean found = false;
-        int oldWidth = (int) tp.getDimensions().getWidth();
-
-        for (Cell c: tp.getActualMatrix()) {
-            oldCells.add(boardList.get(c.getIndex(numCols)));
-        }
-        System.out.println("Check: ");
-        cellCheckValidity(tp);
-
-//        for (Cell c: oldCells) {
-//            System.out.println("OldCells: " + c.getIndex(numCols));
-//        }
-//        System.out.println("");
-
-        switch (tp.getType()) {
-            case O:
-                tp.rotateRight();
-                return;
-            case I:
-                tp.rotateRight();
-                System.out.println("Check: ");
-                cellCheckValidity(tp);
-                if (adjustBoundsRotate(tp, oldWidth)) {
-                    System.out.println("Bounds adjusted!");
-                } else {
-                    System.out.println("Bounds NOT adjusted!");
-                }
-                if (tp.getRotation() == 1) {
-                    if (validatePiecePlacement(tp)) {
-                        if (adjustBoundsRotate(tp, oldWidth)) {
-                            System.out.println("Bounds adjusted!");
-                        } else {
-                            System.out.println("Bounds NOT adjusted!");
-                        }
-                        found = true;
-                    } else {
-                        for (int i = 0; i < 4; i++) {
-                            System.out.println("");
-                            System.out.println("Case:        " + i);
-                            System.out.println("");
-                            System.out.println("kickCol:     " +  wallKickRightI[i][0]);
-                            System.out.println("kickRow:     " + wallKickRightI[i][1]);
-                            System.out.println("kick before: ");
-                            printPieceRowAndCol();
-                            shiftPieceCol(wallKickRightI[i][0], tp);
-                            shiftPieceRow(wallKickRightI[i][1], tp);
-//                            pieceCol += getWallKickRightI[i][0];
-//                            pieceRow += getWallKickRightI[i][1];
-                            System.out.println("kick applied: ");
-                            printPieceRowAndCol();
-//                            if (pieceCol < 0) {
-//                                System.out.println("Case: " + i + ".1");
-//                                pieceCol = 0;
-//                            } else if (pieceCol + (int) tp.getDimensions().getWidth() > numCols) {
-//                                System.out.println("Case: " + i + ".2");
-//                                pieceCol = numCols - (int) tp.getDimensions().getWidth();
-//                            }
-                            if (validatePiecePlacement(tp)) {
-                                found = true;
-                                printPieceRowAndCol();
-                                break;
-                            } else {
-//                                pieceCol -= getWallKickRightI[i][0];
-//                                pieceRow -= getWallKickRightI[i][1];
-                                shiftPieceCol(-wallKickRightI[i][0], tp);
-                                shiftPieceRow(-wallKickRightI[i][1], tp);
-                                System.out.println("kick removed: ");
-                                printPieceRowAndCol();
-                            }
-                        }
-                    }
-                } else if (tp.getRotation() == 2) {
-                    if (validatePiecePlacement(tp)) {
-                        found = true;
-                    } else {
-                        for (int i = 4; i < 8; i++) {
-                            System.out.println("");
-                            System.out.println("Case:        " + i);
-                            System.out.println("");
-                            System.out.println("kickCol:     " +  wallKickRightI[i][0]);
-                            System.out.println("kickRow:     " + wallKickRightI[i][1]);
-                            System.out.println("kick before: ");
-                            printPieceRowAndCol();
-//                            pieceCol += getWallKickRightI[i][0];
-//                            pieceRow += getWallKickRightI[i][1];
-                            shiftPieceCol(wallKickRightI[i][0], tp);
-                            shiftPieceRow(wallKickRightI[i][1], tp);
-                            System.out.println("kick applied: ");
-                            printPieceRowAndCol();
-                            if (validatePiecePlacement(tp)) {
-                                found = true;
-                                printPieceRowAndCol();
-                                break;
-                            } else {
-//                                pieceCol -= getWallKickRightI[i][0];
-//                                pieceRow -= getWallKickRightI[i][1];
-                                shiftPieceCol(-wallKickRightI[i][0], tp);
-                                shiftPieceRow(-wallKickRightI[i][1], tp);
-                                System.out.println("kick removed: ");
-                                printPieceRowAndCol();
-                            }
-                        }
-                    }
-                } else if (tp.getRotation() == 3) {
-                    if (validatePiecePlacement(tp)) {
-                        found = true;
-                    } else {
-                        for (int i = 8; i < 12; i++) {
-                            System.out.println("Case: " + i);
-                            shiftPieceCol(wallKickRightI[i][0], tp);
-                            shiftPieceRow(wallKickRightI[i][1], tp);
-//                            pieceCol += getWallKickRightI[i][0];
-//                            pieceRow += getWallKickRightI[i][1];
-                            if (pieceCol < 0) {
-                                pieceCol = 0;
-                            } else if (pieceCol + (int) tp.getDimensions().getWidth()  > numCols) {
-                                pieceCol = numCols - (int) tp.getDimensions().getWidth();
-                            }
-                            if (validatePiecePlacement(tp)) {
-                                found = true;
-                                break;
-                            } else {
-//                                pieceCol -= getWallKickRightI[i][0];
-//                                pieceRow -= getWallKickRightI[i][1];
-                                shiftPieceCol(-wallKickRightI[i][0], tp);
-                                shiftPieceRow(-wallKickRightI[i][1], tp);
-                            }
-                        }
-                    }
-                } else {
-                    if (validatePiecePlacement(tp)) {
-                        found = true;
-                    } else {
-                        for (int i = 12; i < 15; i++) {
-                            System.out.println("Case: " + i);
-                            shiftPieceCol(wallKickRightI[i][0], tp);
-                            shiftPieceRow(wallKickRightI[i][1], tp);
-//                            pieceCol += getWallKickRightI[i][0];
-//                            pieceRow += getWallKickRightI[i][1];
-                            if (validatePiecePlacement(tp)) {
-                                found = true;
-                                break;
-                            } else {
-//                                pieceCol -= getWallKickRightI[i][0];
-//                                pieceRow -= getWallKickRightI[i][1];
-                                shiftPieceCol(-wallKickRightI[i][0], tp);
-                                shiftPieceRow(-wallKickRightI[i][1], tp);
-                            }
-                        }
-                    }
-                }
-
-                break;
-            default:
-                if (tp.getRotation() == 1) {
-
-
-                } else if (tp.getRotation() == 2) {
-
-                } else if (tp.getRotation() == 3) {
-
-                } else {
-
-                }
-        }
-
-//        for (Cell c: oldCells) {
-//            System.out.println("OldCells: " + c.getIndex(numCols));
-//        }
-//        System.out.println("");
-
-
-
-        if (!found) {
-            System.out.println("Not Found");
-            tp.rotateLeft();
-            tp.setActualMatrix(oldCells);
-            System.out.println("After return: ");
-            for (Cell c: oldCells) {
-                System.out.println(c);
-            }
-
-
-        }
-    }
-
-    private void printPieceRowAndCol() {
-        System.out.println("");
-        System.out.println("pieceCol: " + pieceCol);
-        System.out.println("pieceRow: " + pieceRow);
-    }
-
-    // EFFECTS: if this method returns true then the piece is adjusted
-    //          else the method returns false to note that nothing was changed
-    public boolean adjustBoundsRotate(TetrisPiece tp, int widthBefore) {
-        int newWidth = (int) tp.getDimensions().getWidth();
-        if (widthBefore <= newWidth && (pieceCol + newWidth > numCols)) {
-            pieceCol = numCols - newWidth;
-            System.out.println("First Case");
-            System.out.println("New PieceCol:       " + pieceCol);
-            System.out.println("Width:              " + newWidth);
-            return true;
-        }
-        if (widthBefore <= newWidth && (pieceCol - newWidth <= 0) && pieceCol < newWidth - widthBefore) {
-            System.out.println("Second Case");
-            System.out.println("New PieceCol:       " + pieceCol);
-            System.out.println("Width:              " + newWidth);
-            System.out.println("PieceCol - newWidth: " + (pieceCol - newWidth));
-            pieceCol = 0;
-            return true;
-        }
-
-        System.out.println("False case");
-        return false;
-    }
-
-    public void findOptimalCells(TetrisPiece tp) {
-        ArrayList<Cell> cellsBefore = new ArrayList<>();
-        ArrayList<Cell> optimalCells = new ArrayList<>();
-        int widthBefore = (int) tp.getDimensions().getWidth();
-        int heightBefore = (int) tp.getDimensions().getHeight();
-        boolean found = false;
-
-        for (Cell c: tp.getActualMatrix()) {
-            cellsBefore.add(boardList.get(c.getIndex(numCols)));
-        }
-        tp.rotateRight();
-
-        ArrayList<Cell> originalMatrix = tp.getOriginalMatrix();
-        int matrixNumRows = tp.getMatrixNumRows();
-        int matrixNumCols = tp.getMatrixNumCols();
-        int numTries = 0;
-        while (numTries < 4) {
-            boolean pieceGood = true;
-            for (int row = 0; row < matrixNumRows; row++) {
-                for (int col = 0; col < matrixNumCols; col++) {
-                    Cell currentCell = originalMatrix.get(row * matrixNumCols + col);
-                    if (currentCell.isFilled()) {
-                        int index = (row + pieceRow) * numCols + col + pieceCol;
-                        if (index < 0 || index >= (numRows * numCols)) {
-                            pieceGood = false;
-                            break;
-                        }
-                        Cell actualCell = boardList.get(index);
-                        if (actualCell.isFilled() && !tp.getActualMatrix().contains(actualCell)) {
-                            pieceGood = false;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (pieceGood) {
-                found = true;
-                break;
-            }
-            if (numTries == 2) {
-                pieceCol--;
-            } else if (numTries == 3) {
-                pieceCol++;
-            } else {
-                pieceRow--;
-            }
-
-            numTries++;
-        }
-
-        if (!found) {
-            //tp.rotateLeft();
-            System.out.println("OptimalWasNotFound");
-        }
-    }
-
-    public boolean cellCheckValidity(TetrisPiece tp) {
-        for (Cell c: tp.getOriginalMatrix()){
-            System.out.println(c.getIndex(numCols));
-        }
-        return false;
-    }
-
-    public boolean validatePiecePlacement(TetrisPiece tp) {
-        ArrayList<Cell> originalMatrix = tp.getOriginalMatrix();
-        int matrixNumRows = tp.getMatrixNumRows();
-        int matrixNumCols = tp.getMatrixNumCols();
-        for (int row = 0; row < matrixNumRows; row++) {
-            for (int col = 0; col < matrixNumCols; col++) {
-                Cell currentCell = originalMatrix.get(row * matrixNumCols + col);
-                if (currentCell.isFilled()) {
-                    int index = (row + pieceRow) * numCols + col + pieceCol;
-                    if (index >= (numRows * numCols)) {
-                        return false;
-                    }
-                    Cell actualCell = boardList.get(index);
-                    if (actualCell.isFilled() && !tp.getActualMatrix().contains(actualCell)) {
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
-    }
-
-    public boolean checkRotation(TetrisPiece tp) {
-
-        return validatePiecePlacement(tp);
-    }
-
-    public int getPieceCol() {
-        return pieceCol;
     }
 
     public int getNumCols() {
@@ -1105,37 +609,12 @@ public class Board extends Entity {
         return numRows;
     }
 
-
+    // MODIFIES: this
+    // EFFECTS: removes all the blocks in the cells of boardList
     public void clearBoard() {
         for (Cell c: boardList) {
             c.removeBlock();
         }
-    }
-
-    public void printBoard() {
-        System.out.println("Board: ");
-        for (int i = 0; i < boardList.size(); i++) {
-            if (i % (numCols) == 0 && i > 0) {
-                System.out.println();
-            }
-//            System.out.format("%3d  ", (boardList.get(i).getRowPos() * numCols + boardList.get(i).getColPos()));
-            int col = 0;
-            if (boardList.get(i).getIsGhost()) {
-                col = 1;
-            }
-            System.out.format("%3d  ", col);
-
-            //System.out.print((boardList.get(i).getRowPos() + (boardList.get(i).getColPos() * (numCols))) + "       ");
-        }
-
-//        System.out.println();
-//        System.out.println("Board: ");
-//        for (int i = 0; i < numRows; i++) {
-//            for (int j = 0; j < numCols; j++) {
-//                System.out.print(j + (i * numCols) + "    ");
-//            }
-//            System.out.println();
-//        }
     }
 
     public void setCanMoveVertically(boolean canMove) {
@@ -1181,52 +660,6 @@ public class Board extends Entity {
         }
 
         return cell;
-    }
-
-    public boolean checkMoveUp(TetrisPiece tp) {
-        ArrayList<Cell> cells = tp.getActualMatrix();
-//        System.out.println(cells);
-        for (Cell c: cells) {
-            int index = c.getIndex(numCols) - numCols;
-            if (index < 0) {
-                return false;
-            }
-            Cell cellBelow = boardList.get(index);
-            if (cellBelow.isFilled() && !cells.contains(cellBelow)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-
-    public boolean checkMoveDown(TetrisPiece tp) {
-        ArrayList<Cell> cells = tp.getActualMatrix();
-        for (Cell c: cells) {
-            int index = c.getIndex(numCols) + (numCols);
-            if (index >= numRows * numCols) {
-                return false;
-            }
-            Cell cellBelow = boardList.get(c.getIndex(numCols) + (numCols));
-            if (cellBelow.isFilled() && !cells.contains(cellBelow)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    public boolean checkMoveSide(TetrisPiece tp, int move) {
-        ArrayList<Cell> cells = tp.getActualMatrix();
-        for (Cell c: cells) {
-            Cell adjacentCell = boardList.get(c.getIndex(numCols) + move);
-            if (adjacentCell.isFilled() && !cells.contains(adjacentCell)) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     @Override

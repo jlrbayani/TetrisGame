@@ -6,11 +6,13 @@ import org.json.JSONObject;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
+// a Score represents how many points a player has gotten and eventually also stores the name of the Player after finishing a game
 public class Score extends Entity implements Writable, Comparable<Score> {
 
     private String name;
     private int currentScore, newScore;
 
+    // constructor for Score which requires actualX and actualY to be defined which refers to where it will show up on the screen
     public Score(int actualX, int actualY) {
         this.actualX = actualX;
         this.actualY = actualY;
@@ -18,6 +20,7 @@ public class Score extends Entity implements Writable, Comparable<Score> {
         this.newScore = 0;
     }
 
+    // in this constructor it only matters to keep track of its data (name and its score value)
     public Score(String name, int newScore) {
         this.name = name;
         this.newScore = newScore;
@@ -44,6 +47,8 @@ public class Score extends Entity implements Writable, Comparable<Score> {
         this.newScore = score;
     }
 
+    // MODIFIES: this
+    // EFFECTS: adds to the score value
     public void addToScore(int added) {
         if (added < 0) {
             return;
@@ -52,6 +57,7 @@ public class Score extends Entity implements Writable, Comparable<Score> {
         this.newScore += added;
     }
 
+    // EFFECTS: at every update currentScore attempts to catchup to newScore and the rate at which it does this depends on the difference between the two values
     @Override
     public void update() {
         int rateAdded;
@@ -74,6 +80,7 @@ public class Score extends Entity implements Writable, Comparable<Score> {
         }
     }
 
+    // EFFECTS: draws the currentScore
     @Override
     public void draw(Graphics2D g2) {
         g2.setColor(Color.WHITE);
@@ -89,6 +96,7 @@ public class Score extends Entity implements Writable, Comparable<Score> {
         g2.drawString(currentScore + "", actualX, actualY + 40);
     }
 
+    // EFFECTS: returns this as a JSONObject
     @Override
     public JSONObject toJson() {
         JSONObject json = new JSONObject();
@@ -101,6 +109,7 @@ public class Score extends Entity implements Writable, Comparable<Score> {
         return json;
     }
 
+    // compares score to be sorted from greatest to least newScore values
     @Override
     public int compareTo(Score s) {
         return s.newScore - newScore;

@@ -2,6 +2,7 @@ package main.model;
 
 import java.awt.*;
 
+// this abstract Entity class serves as a basis and reference for every object in the game that must be rendered, updated, and has extrapolated values
 public abstract class Entity {
 
     protected double extrapolate;
@@ -63,7 +64,11 @@ public abstract class Entity {
         isPaused = false;
     }
 
+    // EFFECTS: to be implemented by the child object, update will be called to change any of the values that is required for that object
     public abstract void update();
+
+    // EFFECTS: to be implemented by the child object, draw will be called whenever an entity needs to be shown on screen and the values used in draw coincides with the values
+    // changed in update()
     public abstract void draw(Graphics2D g2);
 
 }

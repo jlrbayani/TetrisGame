@@ -7,6 +7,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+// this represents the panel to show to the user when a game finishes
+// it is determined if the score they reach should be added to the HighScores list
+// this panel has two cases of showing if the user is successful or if they fail to make it to the HighScores list
 public class GameOverPanel extends JPanel implements ActionListener {
     final static String GAMEOVERPANEL = "gameOverPanel";
     private static final Color backgroundCol = new Color(43, 42, 42);
@@ -18,6 +21,7 @@ public class GameOverPanel extends JPanel implements ActionListener {
     private StandardButton menuButton, confirmButton;
     private JLabel header, additionalText;
 
+    // the constructor for the GameOverPanel which refers back to TetrisFrame
     public GameOverPanel(TetrisFrame frame) {
         this.frame = frame;
         hasNewScore = false;
@@ -39,6 +43,8 @@ public class GameOverPanel extends JPanel implements ActionListener {
         return name;
     }
 
+    // MODIFIES: this
+    // EFFECTS: initializes the possible buttons for the gameOverPanel
     public void initButtons() {
         menuButton = new StandardButton("MAIN MENU");
         menuButton.setAlignmentX(CENTER_ALIGNMENT);
@@ -53,6 +59,9 @@ public class GameOverPanel extends JPanel implements ActionListener {
         textField.addActionListener(this);
     }
 
+    // REQUIRES: buttons to be initialized
+    // MODIFIES: this
+    // EFFECTS: adds the components required for the current state of the panel which depends on hasNewScore
     public void initPanel() {
         removeAll();
         revalidate();
@@ -92,11 +101,7 @@ public class GameOverPanel extends JPanel implements ActionListener {
         }
     }
 
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-    }
-
+    // EFFECTS: handles all the button effects in the panel, also checks if the name length isn't longer than 15 characters
     @Override
     public void actionPerformed(ActionEvent e) {
         Object src = e.getSource();

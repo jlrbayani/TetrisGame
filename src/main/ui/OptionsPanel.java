@@ -7,6 +7,7 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
+// This Panel represents the options menu where the user can change their volume settings, look at the Controls, or return to the previous panel they were in
 public class OptionsPanel extends JPanel {
     final static String OPTIONSPANEL = "optionsPanel";
     final static String OPTIONSMENU = "optionsMenuCard";
@@ -28,6 +29,7 @@ public class OptionsPanel extends JPanel {
     private JButton muteButton;
     private BufferedImage controlsImg;
 
+    // the constructor for the optionPanel
     public OptionsPanel(TetrisFrame frame) {
         super();
         this.frame = frame;
@@ -43,6 +45,8 @@ public class OptionsPanel extends JPanel {
         showOptionsMenu();
     }
 
+    // MODIFIES: this
+    // EFFECTS: adds the different panels made for the CardLayout unique to the optionsPanel
     private void initCards() {
         optionsCards = new JPanel(new CardLayout(0, 0));
         optionsCardLayout = (CardLayout) (optionsCards.getLayout());
@@ -108,6 +112,8 @@ public class OptionsPanel extends JPanel {
         optionsCards.add(controls, CONTROLS);
     }
 
+    // MODFIES: this
+    // EFFECTS: initializes the starting screen for the options Menu and adds all the components and buttons to the panel
     private void initOptionsMenu() {
         optionsMenu.setPreferredSize(new Dimension(TetrisFrame.WIDTH, TetrisFrame.HEIGHT));
         optionsMenu.setLayout(new BoxLayout(optionsMenu, BoxLayout.Y_AXIS));
@@ -132,6 +138,8 @@ public class OptionsPanel extends JPanel {
         optionsMenu.add(backButton);
     }
 
+    // MODIFIES: this
+    // EFFECTS: initializes the UI for the SoundSettings Panel
     private void initSoundSettings() {
         soundSettings.setPreferredSize(new Dimension(TetrisFrame.WIDTH, TetrisFrame.HEIGHT));
         soundSettings.setLayout(new BoxLayout(soundSettings, BoxLayout.Y_AXIS));
@@ -163,6 +171,8 @@ public class OptionsPanel extends JPanel {
 
     }
 
+    // MODIFIES: this
+    // EFFECTS: creates a "slider" interface for controlling the volume in the SoundSystem
     private PanelWithMouseList initVolumeControl() {
         return new PanelWithMouseList() {
             private int xPos;
@@ -185,11 +195,9 @@ public class OptionsPanel extends JPanel {
             @Override
             public void mouseClicked(MouseEvent e) {
                 this.xPos = e.getX();
-                System.out.println("xPos: " + xPos);
                 float volumeRatio = (float) xPos / (float) WIDTH;
                 ss.setVolume(volumeRatio);
                 repaint();
-                System.out.println("Clicked!");
             }
 
             @Override
@@ -205,17 +213,17 @@ public class OptionsPanel extends JPanel {
             @Override
             public void mouseEntered(MouseEvent e) {
                 this.requestFocusInWindow();
-                System.out.println("Entered!");
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
                 soundSettings.requestFocusInWindow();
-                System.out.println("Exited!");
             }
         };
     }
 
+    // MODIFIES: this
+    // EFFECTS: initializes the panel for the Controls screen
     private void initControls() {
         controls.setPreferredSize(new Dimension(TetrisFrame.WIDTH, TetrisFrame.HEIGHT));
         controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
@@ -249,6 +257,7 @@ public class OptionsPanel extends JPanel {
         frame.returnToPreviousPanel();
     }
 
+    // creates a panel with an ActionListener
     private abstract static class PanelWithActList extends JPanel implements ActionListener {
         public PanelWithActList() {
             super();
@@ -258,6 +267,7 @@ public class OptionsPanel extends JPanel {
         public abstract void actionPerformed(ActionEvent e);
     }
 
+    // creates a panel with a mouseListener and a MouseMotionListener
     private abstract static class PanelWithMouseList extends JPanel implements MouseListener, MouseMotionListener {
         final static int WIDTH = 200;
         final static int HEIGHT = 30;

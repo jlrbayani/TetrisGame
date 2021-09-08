@@ -10,6 +10,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
+// The GamePanel contains all of the components fpr the user interface during gameplay of Tetris.
+// The rendering method is also tied to the paintComponent of this JPanel due to how Swing handles what is shown and when something should be shown to the user.
 public class GamePanel extends JPanel implements ActionListener {
     final static String GAMEPANEL = "gamePanel";
     private static final Color backgroundCol = new Color(43, 42, 42);
@@ -20,6 +22,7 @@ public class GamePanel extends JPanel implements ActionListener {
     private JButton pauseGame;
     private JPanel leftPanel, centrePanel, rightPanel;
 
+    // constructor for the GamePanel which also initializes the keyboard tied to the controls for the game
     public GamePanel(TetrisFrame frame) {
         super();
         this.frame = frame;
@@ -57,6 +60,9 @@ public class GamePanel extends JPanel implements ActionListener {
         pauseGame.addActionListener(this);
     }
 
+    // REQUIRES: all labels and buttons to be initialized
+    // MODIFIES: this
+    // EFFECTS: initializes all components and adds them to this panel
     private void initPanel() {
         setPreferredSize(new Dimension(TetrisFrame.WIDTH, TetrisFrame.HEIGHT));
         setBackground(backgroundCol);
@@ -72,6 +78,7 @@ public class GamePanel extends JPanel implements ActionListener {
         requestFocusInWindow();
     }
 
+    // EFFECTS: sets up the layout and look of the left hand side of the screen
     private void initLeftPanel() {
         leftPanel = new JPanel() {
             @Override
@@ -99,6 +106,7 @@ public class GamePanel extends JPanel implements ActionListener {
 
     }
 
+    // EFFECTS: sets up the layout and feel of the centre panel
     private void initCentrePanel() {
         centrePanel = new JPanel() {
             @Override
@@ -113,6 +121,7 @@ public class GamePanel extends JPanel implements ActionListener {
 
     }
 
+    // EFFECTS: sets up the layout and feel of the right hand side of the screen
     private void initRightPanel() {
         rightPanel = new JPanel() {
             @Override
@@ -135,6 +144,7 @@ public class GamePanel extends JPanel implements ActionListener {
         rightPanel.setOpaque(false);
     }
 
+    // EFFECTS: creates the Game objects and starts the game
     public void startGame() {
         game = new Game(frame);
         game.startGame();
@@ -144,14 +154,13 @@ public class GamePanel extends JPanel implements ActionListener {
         return game;
     }
 
-    // TODO: can implement different layers by rendering different entity lists depending on order
+    // REQUIRES: game and all the other panels inside this one must be initialized
+    // MODIFIES: this/the screen the user sees
+    // EFFECTS: repaints the different panels in GamePanel and draws all the entities in game that needs to be rendered
     @Override
     protected synchronized void paintComponent(Graphics g) {
         super.paintComponent(g);
-        // background rendering test
         Graphics2D g2 = (Graphics2D) g;
-        g2.setColor(Color.WHITE);
-        g2.fill(new Rectangle(45, 95, 132, 132));
 
         leftPanel.repaint();
         centrePanel.repaint();
@@ -163,6 +172,7 @@ public class GamePanel extends JPanel implements ActionListener {
 
     }
 
+    // EFFECTS: pauses the game if the src found is from the pauseGame button
     @Override
     public void actionPerformed(ActionEvent e) {
         Object src = e.getSource();
@@ -172,7 +182,10 @@ public class GamePanel extends JPanel implements ActionListener {
         }
     }
 
+    // a Keyboard class to handle controls for the Game
     private class Keyboard extends KeyAdapter {
+        // MODIFIES: game
+        // EFFECTS: checks for any keys that are held down and keeps track of keyPresses that lasts long
         @Override
         public void keyPressed(KeyEvent e) {
             boolean[] keysHeld = game.getKeysHeldDown();
@@ -202,6 +215,8 @@ public class GamePanel extends JPanel implements ActionListener {
             game.keyPressed(e.getKeyCode());
         }
 
+        // MODIFIES: game
+        // EFFECTS: keeps track of any keys released and does the appropriate action for it
         @Override
         public void keyReleased(KeyEvent e) {
             boolean[] keysHeld = game.getKeysHeldDown();

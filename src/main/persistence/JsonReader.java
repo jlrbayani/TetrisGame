@@ -29,7 +29,6 @@ public class JsonReader {
         File jarFile = new File(JsonReader.class.getProtectionDomain().getCodeSource().getLocation().getPath());
         File file = new File(jarFile.getParent(), source);
 
-        System.out.println(file.getPath());
         String jsonData = readFile(file.getPath());
         JSONObject jsonObject = new JSONObject(jsonData);
 

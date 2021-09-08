@@ -4,8 +4,8 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.net.URL;
 
+// represents a Block that builds up a TetrisPiece
 public class Block extends Entity{
 
     private int colPos, rowPos;
@@ -13,8 +13,9 @@ public class Block extends Entity{
     private Cell cell;
     private TetrisPiece.Type blockType;
     private boolean isLocked;
-    private Board board;
 
+    // the Block constructor that needs a specified blockType and needs a cell to be passed in
+    // a block can only exist in a cell
     public Block(TetrisPiece.Type blockType, Cell cell) {
         this.cell = cell;
         this.actualX = cell.getActualX();
@@ -29,6 +30,8 @@ public class Block extends Entity{
         setBlockImg(this.blockType);
     }
 
+    // MODIFIES: this
+    // EFFECTS: sets the image to be used for the block
     private void setBlockImg(TetrisPiece.Type blockType) {
         String s = "";
         switch (blockType) {
@@ -56,26 +59,21 @@ public class Block extends Entity{
         }
 
         try {
-            URL urlBlock = getClass().getResource("/blocks/block" + s +".png");
-            img = ImageIO.read(urlBlock);
+            img = ImageIO.read(getClass().getResource("/blocks/block" + s +".png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public TetrisPiece.Type getBlockType() {
-        return blockType;
-    }
-
-    public BufferedImage getImg() {
-        return img;
-    }
-
+    // MODIFIES: this
+    // EFFECTS: removes the cell association form this block
     public void removeCell() {
         isLocked = false;
         cell = null;
     }
 
+    // MODIFIES: this
+    // EFFECTS: locks the block in Cell c
     public void lockBlock(Cell c) {
         if (c == null) {
             return;
@@ -98,93 +96,25 @@ public class Block extends Entity{
         return rowPos;
     }
 
-    public void setBoard(Board board) {
-        this.board = board;
-    }
-
-    public void moveBlockDown() {
-        if (cell != null && board != null) {
-            if (cell.getRowPos() < board.getNumRows() - 1) {
-                int newRow = cell.getRowPos() + 1;
-                Cell newCell = board.getCell(getRowPos(), newRow);
-                System.out.println("New Cell Index: " + newCell.getIndex(21));
-                if (!newCell.isFilled()) {
-                    System.out.println(this.toString());
-                    cell.removeBlock();
-                    newCell.addBlock(this);
-                }
-            }
-        }
-    }
-
-    public void moveBlockRight() {
-
-    }
-
+    // EFFECTS: sets the extrapolation value for this block
     @Override
     public void setExtrapolation(double extrapolate) {
         this.extrapolate = extrapolate;
     }
 
+    // MODIFIES: this
+    // EFFECTS: if cell is not null, then block is locked to its position
     @Override
     public void update() {
-        //System.out.println(extrapolate);
-        //changeX  += (velocityX * extrapolate);
-        //System.out.println("changeX: " + changeX);
-        //System.out.println("sum: " + (int)(actualX + changeX));
-        //changeX += 2;
-
-        //actualX += velocityX * extrapolate;
-//        if (!isLocked) {
-//
-//        }
-
-//        if (board.getNumRows() == 21)
-//            System.out.println(this);
         if (cell != null) {
-//            if (move && moveDownCounter % 120 == 0) {
-//                System.out.println("Passive move down!");
-//                moveBlockDown();
-//            }
-//            setChangeX(cell.getChangeX());
-//            setChangeY(cell.getChangeY());
-
-//            if (cell.isCanMove()) {
-//                if (!flip) {
-//                    changeY += (velocityX * extrapolate);
-//                }
-//                if (flip) {
-//                    changeY -= (velocityX * extrapolate);
-//                }
-//
-//                if (changeX > 60) {
-//                    flip = true;
-//                }
-//                if (changeX < 1) {
-//                    flip = false;
-//                }
-//            }
             lockBlock(cell);
-
         }
-
-        //System.out.println("Move Counter: " + moveDownCounter);
-//        moveDownCounter++;
-//        if (moveDownCounter > 6000) {
-//            moveDownCounter = 1;
-//        }
     }
 
+    // EFFECTS: draws the the img of the specified blockType on the screen
     @Override
     public void draw(Graphics2D g2) {
-        // flag
-//        int t = (this.rowPos * 10 + this.colPos);
-//        if (t == 1 || t == 2) {
-//            System.out.println( t + ": " +  (int)(actualX + changeX));
-//        }
-
         g2.drawImage(img, (int) (actualX + changeX), (int) (actualY + changeY), null);
-
     }
 
     @Override
