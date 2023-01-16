@@ -8,3 +8,11 @@ many *rows* as possible. To make these *rows*, you would need to create a row by
 *blocks* which make up the **Tetris** pieces also known as **Tetrominos**. These pieces fall at a certain speed
 which slowly increases as the game goes on. Be careful not to reach the top of the board or the game ends.
 Reach the highest score you can!
+
+Just download the jar file here: https://github.com/jlrbayani/TetrisGame/releases/tag/v1.0
+
+![](misc/tetris_demo.gif)
+
+![](misc/tetris_demo_2.gif)
+
+![img.png](misc/img.png)
